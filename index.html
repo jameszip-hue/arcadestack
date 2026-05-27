@@ -1,0 +1,2816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARCADE STACK - LEFT ROTATION</title>
+  <style>
+    :root {
+      --cell-size: 30px;
+      --board-width: 10;
+      --board-height: 20;
+      --bg: #101827;
+      --panel: #0b1220;
+      --panel-border: #e5e7eb;
+      --text: #f9fafb;
+      --muted: #aeb8c4;
+      --accent: #38bdf8;
+      --warning: #facc15;
+      --danger: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.10), transparent 30%),
+        linear-gradient(180deg, #111827 0%, #0b1020 58%, #050816 100%);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    body[data-state="playing"] #app,
+    body[data-state="paused"] #app,
+    body[data-state="roundClear"] #app {
+      max-width: 720px;
+    }
+
+    h1 {
+      margin: 0 0 2px;
+      font-size: 28px;
+      letter-spacing: 0.16em;
+      text-shadow: 0 0 14px rgba(56, 189, 248, 0.38);
+    }
+
+    #copyright-line {
+      margin: 0 0 7px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: rgba(249, 250, 251, 0.46);
+      text-align: center;
+    }
+
+    .brand-footer {
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 9px;
+      line-height: 1.35;
+      letter-spacing: 0.09em;
+      color: rgba(249, 250, 251, 0.42);
+      text-align: center;
+    }
+
+
+
+    #mobile-topbar {
+      width: 100%;
+    }
+
+    #mobile-next-panel {
+      display: none;
+      flex: 0 0 86px;
+      width: 86px;
+      padding: 6px 6px 7px;
+      border-radius: 10px;
+      background: rgba(11, 18, 32, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    #mobile-next-title {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    #mobile-next {
+      width: 72px;
+      height: 72px;
+      display: block;
+      margin: 0 auto;
+      background: #050505;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 8px;
+    }
+
+    #scoreboard {
+      display: inline-grid;
+      grid-template-columns: repeat(6, minmax(84px, 1fr));
+      gap: 7px;
+      margin-bottom: 9px;
+    }
+
+    .stat {
+      background: rgba(11, 18, 32, 0.82);
+      border: 1px solid rgba(229, 231, 235, 0.18);
+      border-radius: 10px;
+      padding: 7px 9px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 2px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+
+    .stat.goal-warning {
+      border-color: rgba(250, 204, 21, 0.58);
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.15), 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .stat.goal-warning .stat-label,
+    .stat.goal-warning .stat-value {
+      color: #facc15;
+    }
+
+    .stat.goal-final {
+      border-color: rgba(251, 113, 133, 0.72);
+      box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.18), 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .stat.goal-final .stat-label,
+    .stat.goal-final .stat-value {
+      color: #fb7185;
+    }
+
+    #game-container {
+      position: relative;
+      width: min(100%, 858px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 146px var(--board-px, 300px) 340px;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    #side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 146px;
+    }
+
+    #right-panel {
+      width: 340px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      align-content: start;
+    }
+
+    #difficulty-panel {
+      grid-column: 1 / -1;
+    }
+
+    .panel {
+      background: rgba(11, 18, 32, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 12px;
+      padding: 9px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+    }
+
+    #next-title, .panel-title {
+      font-size: 14px;
+      margin-bottom: 7px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: 0.04em;
+    }
+
+    #next {
+      width: 120px;
+      height: 120px;
+      background: #050505;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      display: block;
+      margin: 0 auto;
+    }
+
+    #round-panel {
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    #round-panel strong { color: var(--text); }
+
+    .progress-wrap {
+      height: 9px;
+      background: rgba(255, 255, 255, 0.13);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 6px 0 5px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    #round-progress {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #facc15);
+      border-radius: 999px;
+      transition: width 160ms ease;
+    }
+
+
+    #round-progress.goal-warning {
+      background: linear-gradient(90deg, #facc15, #fb923c);
+    }
+
+    #round-progress.goal-final {
+      background: linear-gradient(90deg, #fb7185, #facc15);
+      animation: clearPulse 520ms ease-in-out infinite;
+    }
+
+    #bonus-panel {
+      text-align: left;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .bonus-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 3px 0;
+    }
+
+    .bonus-line:last-child { border-bottom: 0; }
+    .bonus-line b { color: var(--text); }
+
+    #help {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+      text-align: left;
+    }
+
+    #help strong { color: var(--text); }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      margin-top: 5px;
+    }
+
+    .help-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 3px;
+    }
+
+    .help-row:last-child { border-bottom: 0; }
+
+    .key {
+      color: #f8fafc;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .desc {
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .mini-note {
+      color: rgba(248, 250, 252, 0.82);
+      font-size: 11px;
+      line-height: 1.28;
+      margin-top: 5px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #tetris {
+      width: var(--board-px, 300px);
+      height: 600px;
+      background: #050505;
+      display: block;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 24px 44px rgba(0, 0, 0, 0.38);
+    }
+
+    #difficulty-panel,
+    #options-panel {
+      width: 100%;
+      text-align: left;
+    }
+
+    .level-title {
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .difficulty-card,
+    .option-card {
+      min-height: 34px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      padding: 5px 4px;
+      text-align: center;
+      color: var(--muted);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .difficulty-card.active,
+    .option-card.active {
+      border-color: rgba(56, 189, 248, 0.96);
+      background: rgba(14, 116, 144, 0.34);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.16), 0 12px 24px rgba(0, 0, 0, 0.24);
+    }
+
+    .difficulty-card:disabled,
+    .option-card:disabled {
+      opacity: 0.54;
+      cursor: not-allowed;
+    }
+
+    .difficulty-card b,
+    .option-card b {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+      margin-bottom: 1px;
+    }
+
+    .difficulty-card span,
+    .option-card span {
+      font-size: 10px;
+      line-height: 1.1;
+    }
+
+    .option-group {
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .option-label {
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 5px;
+      letter-spacing: 0.05em;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .start-tip {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.28;
+      text-align: center;
+    }
+
+
+
+    #focus-panel {
+      display: none;
+      text-align: left;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .focus-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .focus-row:last-child { border-bottom: 0; }
+    .focus-row span:first-child { color: var(--muted); }
+    .focus-row b { color: var(--text); white-space: nowrap; }
+
+    #piece-stats-panel {
+      display: none;
+      text-align: left;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .piece-stats-subtitle {
+      color: rgba(248, 250, 252, 0.72);
+      font-size: 10px;
+      margin-top: -3px;
+      margin-bottom: 7px;
+      text-align: center;
+    }
+
+    .piece-bars {
+      height: 86px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      align-items: end;
+      gap: 4px;
+      padding: 7px 4px 4px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .piece-bar-item {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .piece-bar-track {
+      position: relative;
+      width: 12px;
+      height: 52px;
+      border-radius: 999px 999px 3px 3px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .piece-bar-fill {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 0%;
+      border-radius: 999px 999px 3px 3px;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.16);
+      transition: height 160ms ease;
+    }
+
+    .piece-count {
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 800;
+      min-height: 11px;
+    }
+
+    .piece-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+
+    body[data-state="playing"] #difficulty-panel,
+    body[data-state="playing"] #options-panel,
+    body[data-state="playing"] #help,
+    body[data-state="paused"] #difficulty-panel,
+    body[data-state="paused"] #options-panel,
+    body[data-state="paused"] #help,
+    body[data-state="roundClear"] #difficulty-panel,
+    body[data-state="roundClear"] #options-panel,
+    body[data-state="roundClear"] #help {
+      display: none;
+    }
+
+    body[data-state="playing"] #focus-panel,
+    body[data-state="paused"] #focus-panel,
+    body[data-state="roundClear"] #focus-panel,
+    body[data-state="playing"] #piece-stats-panel,
+    body[data-state="paused"] #piece-stats-panel,
+    body[data-state="roundClear"] #piece-stats-panel {
+      display: block;
+    }
+
+    body[data-state="playing"] #right-panel,
+    body[data-state="paused"] #right-panel,
+    body[data-state="roundClear"] #right-panel {
+      width: 146px;
+      grid-template-columns: 1fr;
+    }
+
+    body[data-state="playing"] #game-container,
+    body[data-state="paused"] #game-container,
+    body[data-state="roundClear"] #game-container {
+      width: min(100%, calc(292px + var(--board-px, 300px) + 28px));
+      grid-template-columns: 146px var(--board-px, 300px) 146px;
+    }
+
+    body[data-state="playing"] .panel,
+    body[data-state="paused"] .panel,
+    body[data-state="roundClear"] .panel {
+      background: rgba(8, 13, 24, 0.72);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    body[data-state="playing"] #scoreboard,
+    body[data-state="paused"] #scoreboard,
+    body[data-state="roundClear"] #scoreboard {
+      opacity: 0.94;
+    }
+
+
+    #rank-panel {
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .score-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .score-list li {
+      display: grid;
+      grid-template-columns: 20px 1fr auto;
+      gap: 5px;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 11px;
+    }
+
+    .score-list li:last-child { border-bottom: 0; }
+    .score-rank { color: var(--warning); font-weight: 800; }
+    .score-name { color: var(--text); letter-spacing: 0.06em; }
+    .score-points { color: var(--text); font-weight: 800; }
+
+    #audio-hint {
+      margin-top: 5px;
+      font-size: 10px;
+      color: rgba(249, 250, 251, 0.52);
+      line-height: 1.25;
+    }
+
+
+
+    #mobile-controls {
+      display: none;
+      width: min(100%, 440px);
+      margin: 8px auto 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    #mobile-copyright {
+      display: none;
+      width: 100%;
+      text-align: center;
+      font-size: 9px;
+      line-height: 1.2;
+      letter-spacing: 0.06em;
+      color: rgba(249, 250, 251, 0.34);
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mobile-play-buttons,
+    .mobile-setup-buttons {
+      display: grid;
+      gap: 7px;
+    }
+
+    .mobile-play-buttons {
+      grid-template-columns: 1.15fr 1.15fr 1fr 1fr;
+      grid-auto-rows: 44px;
+      align-items: stretch;
+    }
+
+    .mobile-setup-buttons {
+      grid-template-columns: 1.4fr 1fr 1fr;
+    }
+
+    .touch-btn {
+      min-height: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 13px;
+      background: rgba(15, 23, 42, 0.94);
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-btn.move {
+      grid-row: span 2;
+      min-height: 94px;
+      font-size: 28px;
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .touch-btn.action {
+      background: rgba(8, 47, 73, 0.80);
+      border-color: rgba(56, 189, 248, 0.28);
+    }
+
+    .touch-btn.primary {
+      background: rgba(202, 138, 4, 0.30);
+      border-color: rgba(250, 204, 21, 0.40);
+    }
+
+    .touch-btn.pause {
+      background: rgba(51, 65, 85, 0.86);
+      color: rgba(248, 250, 252, 0.88);
+    }
+
+    .touch-btn:active,
+    .touch-btn.is-pressed {
+      transform: translateY(1px);
+      border-color: rgba(56, 189, 248, 0.92);
+      background: rgba(14, 116, 144, 0.48);
+    }
+
+    body[data-state="start"] .mobile-play-buttons,
+    body[data-state="gameover"] .mobile-play-buttons,
+    body[data-state="roundClear"] .mobile-play-buttons {
+      display: none;
+    }
+
+    body[data-state="playing"] .mobile-setup-buttons,
+    body[data-state="paused"] .mobile-setup-buttons,
+    body[data-state="roundClear"] .mobile-setup-buttons {
+      display: none;
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      button { -webkit-tap-highlight-color: transparent; }
+    }
+
+    @keyframes clearPulse {
+      0% { opacity: 0.15; transform: scaleX(0.96); }
+      50% { opacity: 0.52; transform: scaleX(1); }
+      100% { opacity: 0.15; transform: scaleX(0.96); }
+    }
+
+    @media (max-height: 760px) and (min-width: 761px) {
+      body { padding-top: 6px; }
+      h1 { font-size: 26px; margin-bottom: 5px; }
+      #scoreboard { margin-bottom: 7px; }
+      .stat { padding: 5px 8px; }
+      #right-panel { gap: 7px; }
+      .panel { padding: 8px; }
+      .difficulty-card, .option-card { min-height: 31px; padding: 4px 3px; }
+      .difficulty-card b, .option-card b { font-size: 14px; }
+      #game-container {
+        transform: scale(0.94);
+        transform-origin: top center;
+      }
+    }
+
+    @media (max-width: 920px) {
+      #app { max-width: 100%; }
+
+      #scoreboard {
+        grid-template-columns: repeat(3, 1fr);
+        width: min(100%, 580px);
+      }
+
+      #game-container {
+        width: 858px;
+        transform: scale(0.86);
+        transform-origin: top center;
+      }
+    }
+
+    @media (max-width: 760px) {
+      html, body {
+        width: 100%;
+        height: 100%;
+        min-height: 100dvh;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      body {
+        padding: 5px 6px;
+        align-items: flex-start;
+      }
+
+      #app {
+        height: 100dvh;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      h1 {
+        font-size: 21px;
+        line-height: 1;
+        margin-bottom: 2px;
+        letter-spacing: 0.13em;
+      }
+
+      #copyright-line {
+        display: none;
+      }
+
+      #mobile-topbar {
+        width: min(100%, 430px);
+        margin: 0 auto 5px;
+        display: flex;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      #scoreboard {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+        margin-bottom: 0;
+      }
+
+      #mobile-next-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      #scoreboard .stat:nth-child(1) { order: 1; }
+      #scoreboard .stat:nth-child(5) { order: 2; }
+      #scoreboard .stat:nth-child(3) { order: 3; }
+      #scoreboard .stat:nth-child(4) { order: 4; }
+      #scoreboard .stat:nth-child(2),
+      #scoreboard .stat:nth-child(6) { display: none; }
+
+      .stat {
+        border-radius: 9px;
+        padding: 5px 7px;
+      }
+
+      .stat-label {
+        font-size: 10px;
+        margin-bottom: 1px;
+        letter-spacing: 0.05em;
+      }
+
+      .stat-value {
+        font-size: 17px;
+        line-height: 1.05;
+      }
+
+      #game-container,
+      body[data-state="playing"] #game-container,
+      body[data-state="paused"] #game-container,
+      body[data-state="roundClear"] #game-container {
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        transform: none !important;
+        gap: 0;
+      }
+
+      #side-panel,
+      #right-panel {
+        display: none !important;
+      }
+
+      #tetris {
+        width: auto;
+        height: auto;
+        max-width: 98vw;
+        max-height: 100%;
+        border-width: 2px;
+        border-radius: 9px;
+      }
+
+      #mobile-controls {
+        display: block;
+        flex: 0 0 auto;
+        padding-bottom: 0;
+      }
+
+      #mobile-copyright {
+        display: block;
+        flex: 0 0 auto;
+        margin-top: 3px;
+        padding-bottom: max(4px, env(safe-area-inset-bottom));
+      }
+
+      .touch-btn {
+        min-height: 40px;
+        border-radius: 10px;
+        font-size: 12px;
+      }
+
+      .touch-btn.move {
+        min-height: 88px;
+      }
+    }
+
+    @media (max-width: 760px) and (max-height: 650px) {
+      #mobile-copyright {
+        display: none;
+      }
+    }
+
+    @media (max-width: 380px) {
+      h1 { font-size: 19px; }
+      #scoreboard { gap: 4px; }
+      #mobile-topbar { gap: 5px; }
+      #mobile-next-panel { flex-basis: 78px; width: 78px; padding: 5px 5px 6px; }
+      #mobile-next { width: 64px; height: 64px; }
+      .stat { padding: 4px 5px; }
+      .stat-label { font-size: 9px; }
+      .stat-value { font-size: 15px; }
+      .touch-btn { min-height: 38px; font-size: 11px; }
+      .touch-btn.move { min-height: 82px; font-size: 25px; }
+      .mobile-play-buttons, .mobile-setup-buttons { gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <h1>ARCADE STACK</h1>
+    <div id="copyright-line">© 2027 James. All rights reserved.</div>
+
+    <div id="mobile-topbar">
+      <section id="scoreboard" aria-label="게임 상태">
+        <div class="stat">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">High</div>
+          <div class="stat-value" id="high-score">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Stage</div>
+          <div class="stat-value" id="round">1/3</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Goal</div>
+          <div class="stat-value" id="goal">0/5</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Level</div>
+          <div class="stat-value" id="level">1</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Mode</div>
+          <div class="stat-value" id="mode">10/Classic</div>
+        </div>
+      </section>
+      <section id="mobile-next-panel" aria-label="모바일 다음 블록">
+        <div id="mobile-next-title">Next</div>
+        <canvas id="mobile-next" width="120" height="120"></canvas>
+      </section>
+    </div>
+
+    <div id="game-container">
+      <aside id="side-panel">
+        <div class="panel">
+          <div id="next-title">Next</div>
+          <canvas id="next" width="120" height="120"></canvas>
+        </div>
+        <div id="round-panel" class="panel">
+          <div class="panel-title">STAGE GOAL</div>
+          <strong id="round-detail">LEVEL 1 - STAGE 1</strong>
+          <div class="progress-wrap"><div id="round-progress"></div></div>
+          <span id="round-note">Stage 목표 달성 후 3초 뒤 자동 진행</span>
+        </div>
+        <div id="bonus-panel" class="panel">
+          <div class="panel-title">LAST BONUS</div>
+          <div class="bonus-line"><span>Clean</span><b id="bonus-clean">0</b></div>
+          <div class="bonus-line"><span>Stage</span><b id="bonus-level">0</b></div>
+          <div class="bonus-line"><span>Total</span><b id="bonus-total">0</b></div>
+        </div>
+        <div id="rank-panel" class="panel">
+          <div class="panel-title">TOP SCORES</div>
+          <ol id="score-list" class="score-list"></ol>
+        </div>
+      </aside>
+
+      <canvas id="tetris" width="300" height="600"></canvas>
+
+      <aside id="right-panel">
+        <section id="difficulty-panel" class="panel" aria-label="시작 레벨 선택">
+          <div class="level-title">START LEVEL</div>
+          <div class="level-grid">
+            <button class="difficulty-card active" data-level="1"><b>1</b><span>입문</span></button>
+            <button class="difficulty-card" data-level="2"><b>2</b><span>느림</span></button>
+            <button class="difficulty-card" data-level="3"><b>3</b><span>기본</span></button>
+            <button class="difficulty-card" data-level="4"><b>4</b><span>패턴</span></button>
+            <button class="difficulty-card" data-level="5"><b>5</b><span>중급</span></button>
+            <button class="difficulty-card" data-level="6"><b>6</b><span>빠름</span></button>
+            <button class="difficulty-card" data-level="7"><b>7</b><span>블록</span></button>
+            <button class="difficulty-card" data-level="8"><b>8</b><span>위험</span></button>
+            <button class="difficulty-card" data-level="9"><b>9</b><span>고급</span></button>
+            <button class="difficulty-card" data-level="10"><b>0</b><span>최고</span></button>
+          </div>
+          <div class="start-tip">1~9, 0 = LV10</div>
+        </section>
+
+        <section id="options-panel" class="panel" aria-label="게임 옵션">
+          <div class="level-title">OPTIONS</div>
+          <div class="option-group" style="margin-top:0; padding-top:0; border-top:0;">
+            <div class="option-label">BOARD</div>
+            <div class="option-grid">
+              <button class="option-card" data-option="board" data-value="12"><b>12</b><span>Casual</span></button>
+              <button class="option-card active" data-option="board" data-value="10"><b>10</b><span>Arcade</span></button>
+            </div>
+          </div>
+          <div class="option-group">
+            <div class="option-label">GHOST</div>
+            <div class="option-grid">
+              <button class="option-card" data-option="ghost" data-value="on"><b>ON</b><span>편의</span></button>
+              <button class="option-card active" data-option="ghost" data-value="off"><b>OFF</b><span>원작</span></button>
+            </div>
+          </div>
+          <div class="option-group">
+            <div class="option-label">RANDOM</div>
+            <div class="option-grid">
+              <button class="option-card" data-option="random" data-value="fair"><b>Fair</b><span>7-bag</span></button>
+              <button class="option-card active" data-option="random" data-value="classic"><b>Classic</b><span>순수</span></button>
+            </div>
+          </div>
+          <div class="option-group">
+            <div class="option-label">SOUND</div>
+            <div class="option-grid">
+              <button class="option-card active" data-option="sound" data-value="on"><b>ON</b><span>효과음</span></button>
+              <button class="option-card" data-option="sound" data-value="off"><b>OFF</b><span>무음</span></button>
+            </div>
+            <div id="audio-hint">모바일에서는 첫 터치 후 소리가 활성화됩니다.</div>
+          </div>
+          <div class="start-tip">옵션은 시작 전/게임오버에서 변경</div>
+        </section>
+
+        <section id="focus-panel" class="panel" aria-label="플레이 집중 정보">
+          <div class="panel-title">FOCUS</div>
+          <div class="focus-row"><span>Level</span><b id="focus-level">1</b></div>
+          <div class="focus-row"><span>Stage</span><b id="focus-stage">1/3</b></div>
+          <div class="focus-row"><span>Lines</span><b id="focus-lines">0/5</b></div>
+          <div class="focus-row"><span>Board</span><b id="focus-board">10</b></div>
+          <div class="focus-row"><span>Ghost</span><b id="focus-ghost">OFF</b></div>
+          <div class="focus-row"><span>Random</span><b id="focus-random">Classic</b></div>
+          <div class="mini-note">설정은 시작 전 또는 게임오버에서 변경</div>
+        </section>
+
+        <section id="piece-stats-panel" class="panel" aria-label="레벨 블록 통계">
+          <div class="panel-title">PIECE STATS</div>
+          <div class="piece-stats-subtitle">LEVEL 누적</div>
+          <div id="piece-bars" class="piece-bars"></div>
+        </section>
+
+
+        <div id="help" class="panel">
+          <div class="panel-title">CONTROLS</div>
+          <div class="help-grid">
+            <div class="help-row"><span class="key">← / →</span><span class="desc">이동</span></div>
+            <div class="help-row"><span class="key">↓</span><span class="desc">즉시 낙하</span></div>
+            <div class="help-row"><span class="key">↑</span><span class="desc">회전</span></div>
+            <div class="help-row"><span class="key">Space</span><span class="desc">한 칸</span></div>
+            <div class="help-row"><span class="key">P</span><span class="desc">정지</span></div>
+            <div class="help-row"><span class="key">Enter</span><span class="desc">시작/재시작</span></div>
+          </div>
+          <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
+        </div>
+
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.</div>
+      </aside>
+    </div>
+
+
+    <section id="mobile-controls" aria-label="모바일 터치 조작">
+      <div class="mobile-play-buttons" aria-label="플레이 조작">
+        <button type="button" class="touch-btn move" data-touch="left">←</button>
+        <button type="button" class="touch-btn move" data-touch="right">→</button>
+        <button type="button" class="touch-btn action" data-touch="rotate">ROT</button>
+        <button type="button" class="touch-btn primary" data-touch="hard">HARD</button>
+        <button type="button" class="touch-btn action" data-touch="soft">SOFT</button>
+        <button type="button" class="touch-btn pause" data-touch="pause">P</button>
+      </div>
+      <div class="mobile-setup-buttons" aria-label="시작 설정">
+        <button type="button" class="touch-btn primary" data-touch="start">START</button>
+        <button type="button" class="touch-btn" data-touch="level-down">LV -</button>
+        <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
+      </div>
+    </section>
+    <div id="mobile-copyright">© 2027 James. All rights reserved.</div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('tetris');
+    const context = canvas.getContext('2d');
+
+    const nextCanvas = document.getElementById('next');
+    const nextContext = nextCanvas.getContext('2d');
+    const mobileNextCanvas = document.getElementById('mobile-next');
+    const mobileNextContext = mobileNextCanvas.getContext('2d');
+
+    const scoreElement = document.getElementById('score');
+    const highScoreElement = document.getElementById('high-score');
+    const roundElement = document.getElementById('round');
+    const goalElement = document.getElementById('goal');
+    const levelElement = document.getElementById('level');
+    const modeElement = document.getElementById('mode');
+    const roundDetailElement = document.getElementById('round-detail');
+    const roundProgressElement = document.getElementById('round-progress');
+    const bonusCleanElement = document.getElementById('bonus-clean');
+    const bonusLevelElement = document.getElementById('bonus-level');
+    const bonusTotalElement = document.getElementById('bonus-total');
+    const difficultyCards = Array.from(document.querySelectorAll('.difficulty-card'));
+    const optionCards = Array.from(document.querySelectorAll('.option-card'));
+    const focusLevelElement = document.getElementById('focus-level');
+    const focusStageElement = document.getElementById('focus-stage');
+    const focusLinesElement = document.getElementById('focus-lines');
+    const focusBoardElement = document.getElementById('focus-board');
+    const focusGhostElement = document.getElementById('focus-ghost');
+    const focusRandomElement = document.getElementById('focus-random');
+    const pieceBarsElement = document.getElementById('piece-bars');
+    const scoreListElement = document.getElementById('score-list');
+    const mobileControlsElement = document.getElementById('mobile-controls');
+    const mobileCopyrightElement = document.getElementById('mobile-copyright');
+    const mobileTopbarElement = document.getElementById('mobile-topbar');
+    const touchButtons = Array.from(document.querySelectorAll('[data-touch]'));
+
+    const BLOCK_SIZE = 30;
+    const BOARD_HEIGHT = 20;
+    const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
+    const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
+    const SETTINGS_KEY = 'arcadeStackSettingsV33';
+    const STAGES_PER_LEVEL = 3;
+    const MAX_START_LEVEL = 10;
+    const ROUND_CLEAR_DELAY = 3000;
+    const READY_GO_DURATION = 1000;
+    const READY_GO_SWITCH = 650;
+    const LOCK_DELAY = 300;
+    const MAX_LOCK_RESETS = 6;
+    const PIECE_ORDER = ['I', 'T', 'O', 'J', 'L', 'S', 'Z'];
+
+    let boardWidth = 10;
+    let arena = createMatrix(boardWidth, BOARD_HEIGHT);
+    let pieceBag = [];
+    let pieceStats = createPieceStats();
+
+    nextContext.setTransform(BLOCK_SIZE, 0, 0, BLOCK_SIZE, 0, 0);
+    mobileNextContext.setTransform(BLOCK_SIZE, 0, 0, BLOCK_SIZE, 0, 0);
+
+    const savedSettings = loadSettings();
+    const settings = {
+      ghost: savedSettings.ghost ?? (isMobileLayout() ? true : false),
+      randomizer: savedSettings.randomizer || 'classic',
+      boardWidth: savedSettings.boardWidth || 10,
+      sound: savedSettings.sound ?? true,
+    };
+
+    const player = {
+      pos: { x: 0, y: 0 },
+      matrix: null,
+      score: 0,
+      lines: 0,
+      round: 1,
+      roundLines: 0,
+      level: 1,
+      completedStages: 0,
+      piecesSinceLineClear: 0,
+      randomBlocks: 0,
+    };
+
+    let dropCounter = 0;
+    let dropInterval = 900;
+    let lastTime = 0;
+    let gameState = 'start';
+    let selectedStartLevel = savedSettings.startLevel || 1;
+    let nextMatrix = null;
+    let highScore = loadHighScore();
+    let overlayTitle = '';
+    let overlaySubtitle = '';
+    let overlayStageLabel = '';
+    let overlayNextLabel = '';
+    let overlayIsLevelComplete = false;
+    let overlayIsArcadeClear = false;
+    let roundClearStartedAt = 0;
+    let readyStartedAt = 0;
+    let readyGoSoundPlayed = false;
+    let lastBonus = { emptyRows: 0, clean: 0, level: 0, total: 0 };
+    let lineClearEffect = { rows: [], startedAt: 0 };
+    let lockCounter = 0;
+    let lockResets = 0;
+    let goalAlert = { text: '', startedAt: 0, remaining: null };
+    let tetrisAlert = { active: false, startedAt: 0, bonus: 0 };
+    let impactEffect = { startedAt: 0, y: 0, hard: false };
+    let gameOverRecorded = false;
+    let lastScoreWasTop = false;
+    let audioContext = null;
+
+    function applyCanvasSize() {
+      boardWidth = settings.boardWidth;
+      canvas.width = boardWidth * BLOCK_SIZE;
+      canvas.height = BOARD_HEIGHT * BLOCK_SIZE;
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
+      document.documentElement.style.setProperty('--board-px', canvas.width + 'px');
+      context.setTransform(BLOCK_SIZE, 0, 0, BLOCK_SIZE, 0, 0);
+      updateResponsiveSize();
+      arena = createMatrix(boardWidth, BOARD_HEIGHT);
+      if (player.pos) player.pos.x = 0;
+    }
+
+
+    function isMobileLayout() {
+      return window.matchMedia('(max-width: 760px)').matches;
+    }
+
+    function updateResponsiveSize() {
+      if (!isMobileLayout()) {
+        canvas.style.width = canvas.width + 'px';
+        canvas.style.height = canvas.height + 'px';
+        return;
+      }
+
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 390;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 700;
+      const titleHeight = document.querySelector('h1')?.getBoundingClientRect().height || 20;
+      const topCopyrightHeight = document.getElementById('copyright-line')?.getBoundingClientRect().height || 0;
+      const mobileTopbarHeight = mobileTopbarElement?.getBoundingClientRect().height || 98;
+      const controlsHeight = mobileControlsElement?.getBoundingClientRect().height || 96;
+      const mobileCopyrightHeight = mobileCopyrightElement?.getBoundingClientRect().height || 0;
+      const reservedHeight = titleHeight + topCopyrightHeight + mobileTopbarHeight + controlsHeight + mobileCopyrightHeight + 14;
+      const maxBoardHeight = Math.max(320, viewportHeight - reservedHeight);
+      const maxBlockByWidth = Math.floor((viewportWidth * 0.98) / boardWidth);
+      const maxBlockByHeight = Math.floor(maxBoardHeight / BOARD_HEIGHT);
+      const displayBlock = Math.max(14, Math.min(maxBlockByWidth, maxBlockByHeight, 38));
+      canvas.style.width = (boardWidth * displayBlock) + 'px';
+      canvas.style.height = (BOARD_HEIGHT * displayBlock) + 'px';
+    }
+
+    function formatNumber(value) {
+      return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function loadHighScore() {
+      const saved = Number(localStorage.getItem(STORAGE_KEY));
+      return Number.isFinite(saved) ? saved : 0;
+    }
+
+    function loadSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+        return saved && typeof saved === 'object' ? saved : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        ghost: settings.ghost,
+        randomizer: settings.randomizer,
+        boardWidth: settings.boardWidth,
+        sound: settings.sound,
+        startLevel: selectedStartLevel,
+      }));
+    }
+
+    function loadScoreTable() {
+      try {
+        const table = JSON.parse(localStorage.getItem(SCORE_TABLE_KEY) || '[]');
+        return Array.isArray(table) ? table.slice(0, 5) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveScoreTable(table) {
+      localStorage.setItem(SCORE_TABLE_KEY, JSON.stringify(table.slice(0, 5)));
+    }
+
+    function renderScoreTable() {
+      if (!scoreListElement) return;
+      const table = loadScoreTable();
+      const rows = table.length ? table : [{ name: '---', score: 0 }, { name: '---', score: 0 }, { name: '---', score: 0 }, { name: '---', score: 0 }, { name: '---', score: 0 }];
+      scoreListElement.innerHTML = rows.slice(0, 5).map((entry, index) =>
+        '<li><span class="score-rank">' + (index + 1) + '</span><span class="score-name">' + (entry.name || 'JMS') + '</span><span class="score-points">' + formatNumber(entry.score || 0) + '</span></li>'
+      ).join('');
+    }
+
+    function qualifiesForScoreTable(score) {
+      if (score <= 0) return false;
+      const table = loadScoreTable();
+      if (table.length < 5) return true;
+      return score > Math.min(...table.map(entry => entry.score || 0));
+    }
+
+    function normalizeInitials(value) {
+      const cleaned = String(value || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, 3);
+      return (cleaned || 'JMS').padEnd(3, '-');
+    }
+
+    function requestInitials() {
+      try {
+        const input = window.prompt('NEW TOP SCORE!\nEnter initials (3 letters)', 'JMS');
+        return normalizeInitials(input || 'JMS');
+      } catch (error) {
+        return 'JMS';
+      }
+    }
+
+    function recordGameOverScore() {
+      if (gameOverRecorded) return;
+      gameOverRecorded = true;
+      lastScoreWasTop = false;
+      if (player.score <= 0) return;
+
+      const table = loadScoreTable();
+      if (!qualifiesForScoreTable(player.score)) {
+        renderScoreTable();
+        return;
+      }
+
+      const initials = requestInitials();
+      table.push({ name: initials, score: player.score, level: player.level, stage: player.round, date: Date.now() });
+      table.sort((a, b) => (b.score || 0) - (a.score || 0));
+      saveScoreTable(table);
+      lastScoreWasTop = true;
+      renderScoreTable();
+    }
+
+    function saveHighScore() {
+      if (player.score > highScore) {
+        highScore = player.score;
+        localStorage.setItem(STORAGE_KEY, String(highScore));
+      }
+    }
+
+    function createMatrix(w, h) {
+      const matrix = [];
+      while (h--) matrix.push(new Array(w).fill(0));
+      return matrix;
+    }
+
+    function createPieceStats() {
+      return PIECE_ORDER.reduce((stats, type) => {
+        stats[type] = 0;
+        return stats;
+      }, {});
+    }
+
+    function resetPieceStats() {
+      pieceStats = createPieceStats();
+      updatePieceStatsUI();
+    }
+
+    function incrementPieceStats(type) {
+      if (!type || pieceStats[type] === undefined) return;
+      pieceStats[type] += 1;
+      updatePieceStatsUI();
+    }
+
+    function updatePieceStatsUI() {
+      if (!pieceBarsElement) return;
+      const maxCount = Math.max(1, ...PIECE_ORDER.map(type => pieceStats[type] || 0));
+      PIECE_ORDER.forEach(type => {
+        const item = pieceBarsElement.querySelector('[data-piece="' + type + '"]');
+        if (!item) return;
+        const count = pieceStats[type] || 0;
+        const fill = item.querySelector('.piece-bar-fill');
+        const countElement = item.querySelector('.piece-count');
+        fill.style.height = Math.max(4, Math.round((count / maxCount) * 100)) + '%';
+        fill.style.opacity = count > 0 ? '1' : '0.28';
+        countElement.innerText = count;
+      });
+    }
+
+    function buildPieceStatsUI() {
+      const pieceColors = {
+        T: '#22c55e',
+        O: '#3b82f6',
+        L: '#a855f7',
+        J: '#eab308',
+        I: '#ef4444',
+        S: '#06b6d4',
+        Z: '#f97316',
+      };
+      pieceBarsElement.innerHTML = PIECE_ORDER.map(type =>
+        '<div class="piece-bar-item" data-piece="' + type + '">' +
+          '<div class="piece-count">0</div>' +
+          '<div class="piece-bar-track"><div class="piece-bar-fill" style="background:' + pieceColors[type] + '"></div></div>' +
+          '<div class="piece-label">' + type + '</div>' +
+        '</div>'
+      ).join('');
+      updatePieceStatsUI();
+    }
+
+    function getLevelProfile(level) {
+      const clamped = Math.max(1, level);
+      const baseInterval = settings.boardWidth === 10 ? 1030 : 1080;
+      const expertOffset = Math.max(0, clamped - 10);
+      return {
+        label: 'LV ' + clamped,
+        // Level 11+ is an expert loop: speed keeps increasing, but is capped
+        // so the challenge comes from speed + pattern, not unfair acceleration.
+        interval: Math.max(80, baseInterval - (clamped - 1) * 82),
+        garbageRows: getStagePatternRows(clamped, 1),
+        scoreMultiplier: 0.9 + clamped * 0.13 + (settings.boardWidth === 10 ? 0.18 : 0),
+        singleBlockThreshold: Math.max(3, 11 - Math.floor(Math.min(clamped, 16) * 0.65) - Math.floor(expertOffset / 6)),
+      };
+    }
+
+    function setStartLevel(level) {
+      if (gameState === 'playing' || gameState === 'paused' || gameState === 'roundClear') return;
+      selectedStartLevel = Math.max(1, Math.min(MAX_START_LEVEL, Number(level) || 1));
+      syncLevelButtons();
+      saveSettings();
+      playSound('select');
+      player.level = selectedStartLevel;
+      updateStatus();
+      draw();
+    }
+
+    function setOption(option, value) {
+      if (gameState === 'playing' || gameState === 'paused' || gameState === 'roundClear') return;
+
+      if (option === 'board') {
+        settings.boardWidth = Number(value) === 10 ? 10 : 12;
+        applyCanvasSize();
+      } else if (option === 'ghost') {
+        settings.ghost = value === 'on';
+      } else if (option === 'random') {
+        settings.randomizer = value === 'classic' ? 'classic' : 'fair';
+        pieceBag = [];
+      } else if (option === 'sound') {
+        settings.sound = value === 'on';
+        if (settings.sound) playSound('select');
+      }
+
+      syncOptionButtons();
+      saveSettings();
+      updateStatus();
+      draw();
+    }
+
+    function syncLevelButtons() {
+      difficultyCards.forEach(card => {
+        card.classList.toggle('active', Number(card.dataset.level) === selectedStartLevel);
+      });
+    }
+
+    function syncOptionButtons() {
+      optionCards.forEach(card => {
+        const option = card.dataset.option;
+        let activeValue = '';
+        if (option === 'board') activeValue = String(settings.boardWidth);
+        else if (option === 'ghost') activeValue = settings.ghost ? 'on' : 'off';
+        else if (option === 'random') activeValue = settings.randomizer;
+        else if (option === 'sound') activeValue = settings.sound ? 'on' : 'off';
+        card.classList.toggle('active', card.dataset.value === activeValue);
+      });
+    }
+
+    function lockOptionsDuringPlay() {
+      const disabled = gameState === 'playing' || gameState === 'paused' || gameState === 'roundClear';
+      difficultyCards.forEach(card => card.disabled = disabled);
+      optionCards.forEach(card => card.disabled = disabled);
+    }
+
+    function getStageGoal(level, stage) {
+      const goals = {
+        // Final regular arcade balance: faster early wins, less fatigue on mobile.
+        1: [5, 7, 9],
+        2: [8, 10, 12],
+        3: [10, 12, 14],
+        4: [9, 11, 13],
+        5: [11, 13, 15],
+        6: [13, 15, 17],
+        7: [15, 17, 19],
+        8: [16, 18, 20],
+        9: [18, 20, 22],
+        10: [20, 22, 24],
+        // Expert loop: challenging but not punishingly long.
+        11: [22, 24, 26],
+        12: [23, 25, 27],
+        13: [24, 26, 28],
+        14: [25, 27, 29],
+        15: [26, 28, 30],
+        16: [24, 27, 30],
+        17: [25, 28, 30],
+        18: [26, 29, 30],
+        19: [27, 30, 30],
+        20: [28, 30, 30],
+      };
+      if (goals[level]) return goals[level][stage - 1];
+      if (level >= 30) return [30, 30, 30][stage - 1];
+      if (level >= 25) return [29, 30, 30][stage - 1];
+      return [28, 30, 30][stage - 1];
+    }
+
+    function getStagePatternRows(level, stage) {
+      const rows = {
+        1: [0, 1, 2],
+        2: [0, 1, 2],
+        3: [1, 2, 3],
+        4: [2, 3, 4],
+        5: [3, 4, 5],
+        6: [3, 4, 5],
+        7: [5, 6, 7],
+        8: [6, 7, 8],
+        9: [6, 7, 8],
+        10: [6, 7, 8],
+        11: [7, 8, 9],
+        12: [7, 8, 9],
+        13: [7, 8, 9],
+        14: [8, 8, 9],
+        15: [8, 9, 9],
+        16: [8, 9, 10],
+        17: [8, 9, 10],
+        18: [8, 9, 10],
+        19: [9, 9, 10],
+        20: [9, 10, 10],
+      };
+      if (rows[level]) return rows[level][stage - 1];
+      if (level >= 30) return [10, 10, 10][stage - 1];
+      return [9, 10, 10][stage - 1];
+    }
+
+    function getRoundGoal() {
+      return getStageGoal(player.level || selectedStartLevel, player.round || 1);
+    }
+
+    function updateDifficulty() {
+      dropInterval = getLevelProfile(player.level).interval;
+    }
+
+    function updateStatus() {
+      const goal = getRoundGoal();
+      const currentLevel = player.level || selectedStartLevel;
+      const progress = Math.min(100, Math.round((player.roundLines / goal) * 100));
+      const widthLabel = settings.boardWidth === 10 ? '10A' : '12C';
+      const randomLabel = settings.randomizer === 'fair' ? 'Fair' : 'Classic';
+      const ghostLabel = settings.ghost ? 'ON' : 'OFF';
+
+      document.body.dataset.state = gameState;
+      scoreElement.innerText = formatNumber(player.score);
+      highScoreElement.innerText = formatNumber(highScore);
+      roundElement.innerText = player.round + '/' + STAGES_PER_LEVEL;
+      goalElement.innerText = player.roundLines + '/' + goal;
+      levelElement.innerText = currentLevel;
+      modeElement.innerText = widthLabel + '/' + randomLabel;
+      roundDetailElement.innerText = 'LEVEL ' + currentLevel + ' - STAGE ' + player.round + ' · ' + goal + '줄';
+      roundProgressElement.style.width = progress + '%';
+      const remainingLines = Math.max(0, goal - player.roundLines);
+      const goalStat = goalElement.closest('.stat');
+      const isGoalWarning = gameState === 'playing' && remainingLines <= 5 && remainingLines > 1;
+      const isGoalFinal = gameState === 'playing' && remainingLines === 1;
+      goalStat?.classList.toggle('goal-warning', isGoalWarning);
+      goalStat?.classList.toggle('goal-final', isGoalFinal);
+      roundProgressElement.classList.toggle('goal-warning', isGoalWarning);
+      roundProgressElement.classList.toggle('goal-final', isGoalFinal);
+      bonusCleanElement.innerText = formatNumber(lastBonus.clean);
+      bonusLevelElement.innerText = formatNumber(lastBonus.level);
+      bonusTotalElement.innerText = formatNumber(lastBonus.total);
+      focusLevelElement.innerText = currentLevel;
+      focusStageElement.innerText = player.round + '/' + STAGES_PER_LEVEL;
+      focusLinesElement.innerText = player.roundLines + '/' + goal;
+      focusBoardElement.innerText = settings.boardWidth + 'x20';
+      focusGhostElement.innerText = ghostLabel;
+      focusRandomElement.innerText = randomLabel;
+      lockOptionsDuringPlay();
+      updateResponsiveSize();
+    }
+
+    function ensureAudio() {
+      if (!settings.sound) return null;
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        audioContext = new AudioCtx();
+      }
+      if (audioContext.state === 'suspended') audioContext.resume();
+      return audioContext;
+    }
+
+    function playTone(frequency, duration = 0.06, type = 'square', gainValue = 0.035, delay = 0) {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const start = ctx.currentTime + delay;
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.02);
+    }
+
+    function playSound(name) {
+      if (!settings.sound) return;
+      if (name === 'move') playTone(210, 0.035, 'square', 0.018);
+      else if (name === 'rotate') playTone(330, 0.045, 'square', 0.024);
+      else if (name === 'drop') playTone(120, 0.07, 'sawtooth', 0.028);
+      else if (name === 'hardDrop') { playTone(95, 0.06, 'sawtooth', 0.04); playTone(150, 0.04, 'square', 0.025, 0.045); }
+      else if (name === 'lock') playTone(180, 0.05, 'triangle', 0.025);
+      else if (name === 'clear') { playTone(520, 0.08, 'square', 0.03); playTone(660, 0.08, 'square', 0.03, 0.075); }
+      else if (name === 'tetris') { playTone(523, 0.07, 'square', 0.035); playTone(659, 0.07, 'square', 0.035, 0.06); playTone(784, 0.08, 'square', 0.035, 0.12); playTone(1047, 0.13, 'triangle', 0.04, 0.20); }
+      else if (name === 'stage') { playTone(440, 0.08, 'triangle', 0.035); playTone(660, 0.08, 'triangle', 0.035, 0.08); playTone(880, 0.12, 'triangle', 0.035, 0.16); }
+      else if (name === 'level') { playTone(523, 0.08, 'triangle', 0.035); playTone(659, 0.08, 'triangle', 0.035, 0.08); playTone(784, 0.08, 'triangle', 0.035, 0.16); playTone(1047, 0.16, 'triangle', 0.04, 0.24); }
+      else if (name === 'gameover') { playTone(220, 0.14, 'sawtooth', 0.035); playTone(165, 0.18, 'sawtooth', 0.035, 0.12); playTone(110, 0.24, 'sawtooth', 0.035, 0.28); }
+      else if (name === 'select') playTone(420, 0.045, 'square', 0.02);
+      else if (name === 'start') { playTone(392, 0.06, 'square', 0.025); playTone(523, 0.09, 'square', 0.025, 0.06); }
+      else if (name === 'ready') playTone(330, 0.07, 'square', 0.022);
+      else if (name === 'go') { playTone(660, 0.06, 'square', 0.026); playTone(880, 0.08, 'square', 0.026, 0.055); }
+    }
+
+    function createPiece(type) {
+      let matrix;
+      if (type === 'T') {
+        matrix = [[0, 0, 0], [1, 1, 1], [0, 1, 0]];
+      } else if (type === 'O') {
+        matrix = [[2, 2], [2, 2]];
+      } else if (type === 'L') {
+        // Arcade-style spawn: horizontal L after one clockwise rotation.
+        matrix = [[0, 0, 0], [3, 3, 3], [3, 0, 0]];
+      } else if (type === 'J') {
+        // Arcade-style spawn: horizontal J after three clockwise rotations.
+        matrix = [[0, 0, 0], [4, 4, 4], [0, 0, 4]];
+      } else if (type === 'I') {
+        // Play-balanced spawn: red I starts vertically for faster well placement.
+        matrix = [[0, 5, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0], [0, 5, 0, 0]];
+      } else if (type === 'S') {
+        matrix = [[0, 6, 6], [6, 6, 0], [0, 0, 0]];
+      } else if (type === 'Z') {
+        matrix = [[7, 7, 0], [0, 7, 7], [0, 0, 0]];
+      } else {
+        matrix = [[1]];
+      }
+      matrix.pieceType = type;
+      return matrix;
+    }
+
+    function refillBag() {
+      pieceBag = 'TJLOSZI'.split('');
+      for (let i = pieceBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pieceBag[i], pieceBag[j]] = [pieceBag[j], pieceBag[i]];
+      }
+    }
+
+    function createRandomPiece() {
+      if (settings.randomizer === 'classic') {
+        const pieces = 'TJLOSZI';
+        return createPiece(pieces[pieces.length * Math.random() | 0]);
+      }
+      if (pieceBag.length === 0) refillBag();
+      return createPiece(pieceBag.pop());
+    }
+
+    function clearArena() {
+      arena.forEach(row => row.fill(0));
+    }
+
+    function setCellSafe(x, y, value) {
+      if (y >= 0 && y < BOARD_HEIGHT && x >= 0 && x < boardWidth) {
+        arena[y][x] = value;
+      }
+    }
+
+    function applyRoundPattern() {
+      clearArena();
+      const level = player.level;
+      const stage = player.round || 1;
+      const patternIndex = Math.min(8, Math.floor((level - 1) / 2));
+      const baseRows = getStagePatternRows(level, stage);
+      if (baseRows <= 0) return;
+
+      if (patternIndex <= 1) {
+        applyRandomGarbage(baseRows, level <= 2 ? 2 : 1);
+      } else if (patternIndex === 2) {
+        applySidePillars(baseRows);
+      } else if (patternIndex === 3) {
+        applyPyramid(Math.min(9, baseRows + 1));
+      } else if (patternIndex === 4) {
+        applyDiagonal(baseRows + 1, level);
+      } else if (patternIndex === 5) {
+        applyCanyon(baseRows + 1);
+      } else if (patternIndex === 6) {
+        applyCheckerPressure(baseRows + 1);
+      } else {
+        applyHybridPattern(Math.min(14, baseRows + 2), level);
+      }
+    }
+
+    function applyRandomGarbage(rows, holes) {
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        const empty = new Set();
+        while (empty.size < holes) empty.add(Math.floor(Math.random() * boardWidth));
+        for (let x = 0; x < boardWidth; x++) {
+          arena[y][x] = empty.has(x) || Math.random() < 0.05 ? 0 : randomGarbageValue();
+        }
+      }
+    }
+
+    function applySidePillars(rows) {
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          const edge = x <= 1 || x >= boardWidth - 2;
+          const stagger = i % 3 === 0 && (x === 3 || x === boardWidth - 4);
+          arena[y][x] = edge || stagger ? randomGarbageValue() : 0;
+        }
+      }
+    }
+
+    function applyPyramid(rows) {
+      const center = (boardWidth - 1) / 2;
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        const halfWidth = Math.max(1, Math.floor((rows - i) * boardWidth / (rows * 2.2)));
+        for (let x = 0; x < boardWidth; x++) {
+          if (Math.abs(x - center) <= halfWidth && Math.random() > 0.12) {
+            arena[y][x] = randomGarbageValue();
+          }
+        }
+      }
+    }
+
+    function applyDiagonal(rows, level) {
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          const diagonal = (x + i) % Math.max(3, 7 - Math.floor(level / 3)) === 0;
+          const base = i < rows - 2 && Math.random() < 0.48;
+          arena[y][x] = diagonal || base ? randomGarbageValue() : 0;
+        }
+      }
+    }
+
+    function applyCanyon(rows) {
+      const canyon = Math.floor(boardWidth / 2) + (Math.random() < 0.5 ? -1 : 0);
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          const isCanyon = x === canyon || x === canyon + 1 || (i % 4 === 0 && x === canyon - 1);
+          arena[y][x] = isCanyon || Math.random() < 0.04 ? 0 : randomGarbageValue();
+        }
+      }
+    }
+
+    function applyCheckerPressure(rows) {
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          const checker = (x + i) % 2 === 0;
+          const lowerSolid = i < 3 && Math.random() < 0.72;
+          arena[y][x] = checker || lowerSolid ? randomGarbageValue() : 0;
+        }
+      }
+    }
+
+    function applyHybridPattern(rows, level) {
+      applyRandomGarbage(Math.min(rows, 6), 1);
+      for (let i = 3; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          const wave = (x + i + level) % 4 === 0;
+          const pillar = (x === 0 || x === boardWidth - 1) && i % 2 === 0;
+          const pressure = Math.random() < Math.min(0.34, 0.12 + level * 0.01);
+          arena[y][x] = wave || pillar || pressure ? randomGarbageValue() : 0;
+        }
+      }
+    }
+
+    function randomGarbageValue() {
+      return 8 + Math.floor(Math.random() * 9);
+    }
+
+    function collide(arenaMatrix, playerState) {
+      const m = playerState.matrix;
+      const o = playerState.pos;
+
+      for (let y = 0; y < m.length; ++y) {
+        for (let x = 0; x < m[y].length; ++x) {
+          if (
+            m[y][x] !== 0 &&
+            (arenaMatrix[y + o.y] && arenaMatrix[y + o.y][x + o.x]) !== 0
+          ) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+
+    function countEmptyRowsFromTop() {
+      let emptyRows = 0;
+      for (let y = 0; y < arena.length; y++) {
+        if (arena[y].every(value => value === 0)) emptyRows++;
+        else break;
+      }
+      return emptyRows;
+    }
+
+    function awardRoundBonus() {
+      const emptyRows = countEmptyRowsFromTop();
+      const multiplier = getLevelProfile(player.level).scoreMultiplier;
+      const clean = Math.round(5 * emptyRows * (emptyRows + 1) * player.level * multiplier);
+      const stageBonus = Math.round((260 + player.level * 120 + player.round * 180 + getRoundGoal() * 18) * multiplier);
+      const levelCompleteBonus = player.round === STAGES_PER_LEVEL
+        ? Math.round((900 + player.level * 360) * multiplier)
+        : 0;
+      const total = clean + stageBonus + levelCompleteBonus;
+      lastBonus = { emptyRows, clean, level: stageBonus + levelCompleteBonus, total, stageBonus, levelCompleteBonus };
+      player.score += total;
+      saveHighScore();
+    }
+
+    function triggerGoalAlert(previousLines, clearedLines) {
+      if (clearedLines <= 0 || gameState !== 'playing') return;
+      const goal = getRoundGoal();
+      const previousRemaining = Math.max(0, goal - previousLines);
+      const remaining = Math.max(0, goal - player.roundLines);
+
+      if (remaining === 0 || remaining > 5 || previousRemaining === remaining) return;
+      goalAlert = {
+        text: remaining === 1 ? 'FINAL LINE' : remaining + ' LINES LEFT',
+        startedAt: performance.now(),
+        remaining,
+      };
+
+      if (remaining === 5) {
+        playTone(740, 0.055, 'square', 0.026);
+      } else if (remaining === 1) {
+        playTone(880, 0.065, 'square', 0.028);
+        playTone(1175, 0.07, 'square', 0.022, 0.06);
+      }
+    }
+
+    function triggerTetrisBonus() {
+      const multiplier = getLevelProfile(player.level).scoreMultiplier;
+      const bonus = Math.round((400 + player.level * 50) * multiplier);
+      player.score += bonus;
+      tetrisAlert = {
+        active: true,
+        startedAt: performance.now(),
+        bonus,
+      };
+      playSound('tetris');
+      return bonus;
+    }
+
+    function arenaSweep() {
+      let rowCount = 1;
+      let clearedLines = 0;
+      const clearedRows = [];
+
+      outer: for (let y = arena.length - 1; y >= 0; --y) {
+        for (let x = 0; x < arena[y].length; ++x) {
+          if (arena[y][x] === 0) continue outer;
+        }
+
+        clearedRows.push(y);
+        const row = arena.splice(y, 1)[0].fill(0);
+        arena.unshift(row);
+        y++;
+
+        clearedLines++;
+        const multiplier = getLevelProfile(player.level).scoreMultiplier;
+        player.score += Math.round(rowCount * 100 * player.level * multiplier);
+        rowCount *= 2;
+      }
+
+      if (clearedLines > 0) {
+        lineClearEffect = { rows: clearedRows, startedAt: performance.now() };
+        if (clearedLines === 4) {
+          triggerTetrisBonus();
+        } else {
+          playSound('clear');
+        }
+        const previousRoundLines = player.roundLines;
+        player.lines += clearedLines;
+        player.roundLines += clearedLines;
+        triggerGoalAlert(previousRoundLines, clearedLines);
+        player.piecesSinceLineClear = 0;
+        saveHighScore();
+        checkRoundClear();
+      } else {
+        player.piecesSinceLineClear += 1;
+        maybeSpawnRandomSingleBlock();
+      }
+
+      updateStatus();
+      return clearedLines;
+    }
+
+    function maybeSpawnRandomSingleBlock() {
+      if (gameState !== 'playing') return;
+      if (player.level < 7) return;
+      const threshold = getLevelProfile(player.level).singleBlockThreshold;
+      if (player.piecesSinceLineClear < threshold) return;
+
+      if (addRandomSingleBlock()) {
+        player.randomBlocks += 1;
+        player.piecesSinceLineClear = 0;
+      }
+    }
+
+    function isNearExistingStack(x, y) {
+      const neighbors = [
+        { x: x, y: y + 1 },
+        { x: x - 1, y: y },
+        { x: x + 1, y: y },
+        { x: x, y: y - 1 },
+      ];
+
+      return neighbors.some(cell =>
+        cell.y >= 0 &&
+        cell.y < BOARD_HEIGHT &&
+        cell.x >= 0 &&
+        cell.x < boardWidth &&
+        arena[cell.y][cell.x] !== 0
+      );
+    }
+
+    function isTooCloseToActivePiece(x, y) {
+      if (!player.matrix) return false;
+
+      for (let py = 0; py < player.matrix.length; py++) {
+        for (let px = 0; px < player.matrix[py].length; px++) {
+          if (player.matrix[py][px] === 0) continue;
+          const activeX = player.pos.x + px;
+          const activeY = player.pos.y + py;
+          const distance = Math.abs(activeX - x) + Math.abs(activeY - y);
+          if (distance <= 2) return true;
+        }
+      }
+
+      return false;
+    }
+
+    function isDeepVerticalWell(x, y) {
+      let emptyBelow = 0;
+      for (let checkY = y + 1; checkY < BOARD_HEIGHT; checkY++) {
+        if (arena[checkY][x] !== 0) break;
+        emptyBelow++;
+      }
+      return emptyBelow >= 3;
+    }
+
+    function getSingleBlockCandidateWeight(x, y) {
+      let weight = 1;
+
+      // Prefer cells resting on or attached to the existing stack.
+      if (y + 1 < BOARD_HEIGHT && arena[y + 1][x] !== 0) weight += 5;
+      if (x > 0 && arena[y][x - 1] !== 0) weight += 2;
+      if (x + 1 < boardWidth && arena[y][x + 1] !== 0) weight += 2;
+      if (y > 0 && arena[y - 1][x] !== 0) weight += 1;
+
+      // Slightly prefer the lower half so the block feels like part of the pile.
+      weight += Math.max(0, y - Math.floor(BOARD_HEIGHT * 0.55));
+      return weight;
+    }
+
+    function chooseWeightedCandidate(candidates) {
+      const total = candidates.reduce((sum, item) => sum + item.weight, 0);
+      let cursor = Math.random() * total;
+
+      for (const item of candidates) {
+        cursor -= item.weight;
+        if (cursor <= 0) return item;
+      }
+
+      return candidates[candidates.length - 1];
+    }
+
+    function addRandomSingleBlock() {
+      const candidates = [];
+      const minY = Math.floor(BOARD_HEIGHT * 0.45);
+
+      for (let y = minY; y < BOARD_HEIGHT; y++) {
+        for (let x = 0; x < boardWidth; x++) {
+          if (arena[y][x] !== 0) continue;
+          if (!isNearExistingStack(x, y)) continue;
+          if (isTooCloseToActivePiece(x, y)) continue;
+          if (isDeepVerticalWell(x, y)) continue;
+
+          candidates.push({
+            x,
+            y,
+            weight: getSingleBlockCandidateWeight(x, y),
+          });
+        }
+      }
+
+      if (candidates.length === 0) return false;
+      const cell = chooseWeightedCandidate(candidates);
+      arena[cell.y][cell.x] = randomGarbageValue();
+      return true;
+    }
+
+    function checkRoundClear() {
+      const goal = getRoundGoal();
+      if (player.roundLines < goal) return;
+
+      awardRoundBonus();
+      player.roundLines = goal;
+      gameState = 'roundClear';
+      roundClearStartedAt = performance.now();
+      const isLevelComplete = player.round === STAGES_PER_LEVEL;
+      const isArcadeClear = isLevelComplete && player.level === 10;
+      overlayIsLevelComplete = isLevelComplete;
+      overlayIsArcadeClear = isArcadeClear;
+      overlayTitle = isArcadeClear ? 'ARCADE CLEAR!' : (isLevelComplete ? 'LEVEL COMPLETE' : 'STAGE CLEAR');
+      overlayStageLabel = isArcadeClear ? 'LEVEL 10 COMPLETE' : 'LV ' + player.level + '  STAGE ' + player.round + '/' + STAGES_PER_LEVEL;
+      overlayNextLabel = isArcadeClear
+        ? 'EXPERT LOOP UNLOCKED'
+        : (isLevelComplete ? 'NEXT LV ' + (player.level + 1) + ' - STAGE 1' : 'NEXT LV ' + player.level + ' - STAGE ' + (player.round + 1));
+      overlaySubtitle = 'BONUS +' + formatNumber(lastBonus.total);
+      playSound(isLevelComplete ? 'level' : 'stage');
+    }
+
+    function startNextRound() {
+      const completedLevel = player.round === STAGES_PER_LEVEL;
+      if (completedLevel) {
+        player.level += 1;
+        player.round = 1;
+        resetPieceStats();
+      } else {
+        player.round += 1;
+      }
+      player.completedStages += 1;
+      player.roundLines = 0;
+      player.piecesSinceLineClear = 0;
+      updateDifficulty();
+      applyRoundPattern();
+      nextMatrix = createRandomPiece();
+      playerReset();
+      dropCounter = 0;
+      lockCounter = 0;
+      lockResets = 0;
+      roundClearStartedAt = 0;
+      overlayTitle = '';
+      overlaySubtitle = '';
+      overlayIsArcadeClear = false;
+      beginReadyGo();
+      updateStatus();
+    }
+
+    function isReadyActive(time = performance.now()) {
+      return gameState === 'playing' && readyStartedAt > 0 && (time - readyStartedAt) < READY_GO_DURATION;
+    }
+
+    function beginReadyGo() {
+      gameState = 'playing';
+      readyStartedAt = performance.now();
+      readyGoSoundPlayed = false;
+      playSound('ready');
+    }
+
+    function drawCell(ctx, x, y, value, alpha = 1) {
+      const palette = colors[value] || colors[8];
+      const gradient = ctx.createLinearGradient(x, y, x + 1, y + 1);
+      gradient.addColorStop(0, palette.light);
+      gradient.addColorStop(0.58, palette.base);
+      gradient.addColorStop(1, palette.dark);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, 1, 1);
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.42)';
+      ctx.lineWidth = 0.05;
+      ctx.strokeRect(x + 0.025, y + 0.025, 0.95, 0.95);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.fillRect(x + 0.12, y + 0.12, 0.68, 0.12);
+      ctx.restore();
+    }
+
+    function drawMatrix(matrix, offset, ctx = context) {
+      if (!matrix) return;
+      matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) drawCell(ctx, x + offset.x, y + offset.y, value);
+        });
+      });
+    }
+
+    function getGhostPosition() {
+      if (!player.matrix) return null;
+      const ghost = {
+        matrix: player.matrix,
+        pos: { x: player.pos.x, y: player.pos.y },
+      };
+      while (!collide(arena, ghost)) ghost.pos.y++;
+      ghost.pos.y--;
+      return ghost.pos;
+    }
+
+    function drawGhostPiece() {
+      if (!settings.ghost) return;
+      const ghostPos = getGhostPosition();
+      if (!ghostPos || ghostPos.y === player.pos.y) return;
+
+      player.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            const gx = x + ghostPos.x;
+            const gy = y + ghostPos.y;
+            context.save();
+            context.globalAlpha = 1;
+            context.fillStyle = 'rgba(125, 211, 252, 0.22)';
+            context.fillRect(gx + 0.10, gy + 0.10, 0.80, 0.80);
+            context.strokeStyle = 'rgba(186, 230, 253, 0.68)';
+            context.lineWidth = 0.062;
+            context.setLineDash([0.16, 0.10]);
+            context.strokeRect(gx + 0.12, gy + 0.12, 0.76, 0.76);
+            context.setLineDash([]);
+            context.strokeStyle = 'rgba(14, 165, 233, 0.28)';
+            context.lineWidth = 0.025;
+            context.strokeRect(gx + 0.24, gy + 0.24, 0.52, 0.52);
+            context.restore();
+          }
+        });
+      });
+    }
+
+    function drawGoalAlert(time) {
+      if (!goalAlert.text || gameState !== 'playing') return;
+      const elapsed = time - goalAlert.startedAt;
+      const duration = 900;
+      if (elapsed > duration) {
+        goalAlert = { text: '', startedAt: 0, remaining: null };
+        return;
+      }
+
+      const fadeOut = elapsed > 650 ? 1 - ((elapsed - 650) / 250) : 1;
+      const pulse = 0.82 + 0.18 * Math.abs(Math.sin(elapsed / 80));
+      const isFinal = goalAlert.remaining === 1;
+      const y = 1.05;
+      const height = 1.18;
+      const margin = 0.55;
+      const accent = isFinal ? '#fb7185' : '#facc15';
+
+      context.save();
+      context.globalAlpha = Math.max(0, fadeOut);
+      context.fillStyle = 'rgba(0, 0, 0, 0.58)';
+      context.fillRect(margin, y, boardWidth - margin * 2, height);
+      context.strokeStyle = accent;
+      context.lineWidth = 0.045;
+      context.strokeRect(margin + 0.08, y + 0.08, boardWidth - margin * 2 - 0.16, height - 0.16);
+      context.globalAlpha = Math.max(0, fadeOut) * pulse;
+      drawFitText(goalAlert.text, boardWidth / 2, y + 0.78, boardWidth - 1.4, isFinal ? 0.58 : 0.52, 900, accent);
+      context.restore();
+    }
+
+    function drawTetrisAlert(time) {
+      if (!tetrisAlert.active) return;
+      const elapsed = time - tetrisAlert.startedAt;
+      const duration = 1100;
+      if (elapsed > duration) {
+        tetrisAlert = { active: false, startedAt: 0, bonus: 0 };
+        return;
+      }
+
+      const fadeIn = Math.min(1, elapsed / 120);
+      const fadeOut = elapsed > 820 ? 1 - ((elapsed - 820) / 280) : 1;
+      const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
+      const pulse = 1 + 0.045 * Math.sin(elapsed / 55);
+      const y = 6.65;
+      const height = 3.0;
+      const margin = 0.75;
+
+      context.save();
+      context.globalAlpha = alpha;
+      context.fillStyle = 'rgba(0, 0, 0, 0.70)';
+      context.fillRect(margin, y, boardWidth - margin * 2, height);
+      context.strokeStyle = 'rgba(250, 204, 21, 0.90)';
+      context.lineWidth = 0.06;
+      context.strokeRect(margin + 0.08, y + 0.08, boardWidth - margin * 2 - 0.16, height - 0.16);
+
+      context.globalAlpha = alpha * 0.95;
+      context.save();
+      context.translate(boardWidth / 2, y + 1.18);
+      context.scale(pulse, pulse);
+      drawFitText('TETRIS!', 0, 0, boardWidth - 1.8, 0.95, 900, '#facc15');
+      context.restore();
+
+      context.globalAlpha = alpha * 0.92;
+      drawFitText('BONUS +' + formatNumber(tetrisAlert.bonus), boardWidth / 2, y + 2.28, boardWidth - 1.8, 0.46, 900, '#bae6fd');
+      context.restore();
+    }
+
+    function drawLineClearEffect(time) {
+      if (!lineClearEffect.rows.length) return;
+      const elapsed = time - lineClearEffect.startedAt;
+      if (elapsed > 260) {
+        lineClearEffect.rows = [];
+        return;
+      }
+      const alpha = 0.55 * (1 - elapsed / 260);
+      context.save();
+      context.globalAlpha = alpha;
+      context.fillStyle = '#f8fafc';
+      lineClearEffect.rows.forEach(y => context.fillRect(0, y, boardWidth, 1));
+      context.restore();
+    }
+
+    function drawImpactEffect(time) {
+      // Landing feedback is intentionally visual-light.
+      // Strong landing flashes distracted from the board, so hard-drop/lock
+      // feedback is now handled by sound while line-clear keeps the visual flash.
+      return;
+    }
+
+    function drawGrid() {
+      context.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      context.lineWidth = 0.025;
+
+      for (let x = 1; x < boardWidth; x++) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, BOARD_HEIGHT);
+        context.stroke();
+      }
+
+      for (let y = 1; y < BOARD_HEIGHT; y++) {
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(boardWidth, y);
+        context.stroke();
+      }
+    }
+
+    function renderNextToContext(targetContext, targetCanvas) {
+      targetContext.fillStyle = '#050505';
+      targetContext.fillRect(0, 0, targetCanvas.width / BLOCK_SIZE, targetCanvas.height / BLOCK_SIZE);
+      if (!nextMatrix || gameState === 'start') return;
+
+      const offset = {
+        x: (4 - nextMatrix[0].length) / 2,
+        y: (4 - nextMatrix.length) / 2,
+      };
+      drawMatrix(nextMatrix, offset, targetContext);
+    }
+
+    function drawNextPiece() {
+      renderNextToContext(nextContext, nextCanvas);
+      renderNextToContext(mobileNextContext, mobileNextCanvas);
+    }
+
+    function wrapText(text, x, y, maxWidth, lineHeight) {
+      const lines = text.split('\n');
+      lines.forEach((line, idx) => {
+        const words = line.split(' ');
+        let current = '';
+        let localY = y + idx * lineHeight;
+        words.forEach(word => {
+          const test = current ? current + ' ' + word : word;
+          if (context.measureText(test).width > maxWidth && current) {
+            context.fillText(current, x, localY);
+            current = word;
+            localY += lineHeight;
+          } else {
+            current = test;
+          }
+        });
+        context.fillText(current, x, localY);
+      });
+    }
+
+    function drawOverlay(title, subtitle, options = {}) {
+      const height = options.large ? 10.2 : 6.2;
+      const y = options.large ? 4.8 : 6.8;
+      const pulse = options.pulse || 0;
+
+      context.fillStyle = 'rgba(0, 0, 0, 0.76)';
+      context.fillRect(0, y, boardWidth, height);
+
+      if (pulse > 0) {
+        context.save();
+        context.globalAlpha = 0.18 + 0.22 * Math.abs(Math.sin(pulse / 150));
+        context.fillStyle = '#38bdf8';
+        context.fillRect(0, y, boardWidth, 0.18);
+        context.fillRect(0, y + height - 0.18, boardWidth, 0.18);
+        context.restore();
+      }
+
+      context.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      context.lineWidth = 0.05;
+      context.strokeRect(0.28, y + 0.28, boardWidth - 0.56, height - 0.56);
+
+      context.fillStyle = 'white';
+      context.textAlign = 'center';
+      context.font = options.large ? '700 0.88px Arial' : '700 0.82px Arial';
+      context.fillText(title, boardWidth / 2, y + 1.85);
+
+      if (subtitle) {
+        context.fillStyle = 'rgba(255, 255, 255, 0.84)';
+        context.font = '0.43px Arial';
+        wrapText(subtitle, boardWidth / 2, y + 2.95, boardWidth - 1.2, 0.64);
+      }
+    }
+
+
+    function drawFitText(text, x, y, maxWidth, size, weight = 700, color = 'white') {
+      let fontSize = size;
+      context.fillStyle = color;
+      context.textAlign = 'center';
+      do {
+        context.font = weight + ' ' + fontSize.toFixed(2) + 'px Arial';
+        if (context.measureText(text).width <= maxWidth || fontSize <= 0.34) break;
+        fontSize -= 0.04;
+      } while (true);
+      context.fillText(text, x, y);
+    }
+
+    function drawTransitionOverlay(time) {
+      const elapsed = time - roundClearStartedAt;
+      const remain = Math.max(0, Math.ceil((ROUND_CLEAR_DELAY - elapsed) / 1000));
+      const height = 8.2;
+      const y = 5.7;
+      const cx = boardWidth / 2;
+      const accent = overlayIsArcadeClear ? '#f59e0b' : (overlayIsLevelComplete ? '#facc15' : '#38bdf8');
+
+      context.save();
+      context.fillStyle = 'rgba(0, 0, 0, 0.82)';
+      context.fillRect(0, y, boardWidth, height);
+
+      context.globalAlpha = 0.18 + 0.24 * Math.abs(Math.sin(elapsed / 150));
+      context.fillStyle = accent;
+      context.fillRect(0, y, boardWidth, 0.2);
+      context.fillRect(0, y + height - 0.2, boardWidth, 0.2);
+      context.globalAlpha = 1;
+
+      context.strokeStyle = accent;
+      context.lineWidth = 0.05;
+      context.strokeRect(0.28, y + 0.28, boardWidth - 0.56, height - 0.56);
+
+      drawFitText(overlayTitle, cx, y + 1.65, boardWidth - 0.9, 0.9, 800, 'white');
+      drawFitText(overlayStageLabel, cx, y + 2.75, boardWidth - 1.0, 0.48, 700, 'rgba(255,255,255,0.82)');
+      drawFitText('BONUS +' + formatNumber(lastBonus.total), cx, y + 4.0, boardWidth - 1.0, 0.58, 800, accent);
+      drawFitText(overlayNextLabel, cx, y + 5.22, boardWidth - 1.0, 0.48, 700, 'rgba(255,255,255,0.86)');
+      drawFitText(String(remain), cx, y + 7.0, boardWidth - 1.0, 1.18, 900, 'white');
+      context.restore();
+    }
+
+    function drawStartScreen() {
+      const widthMode = settings.boardWidth === 10 ? '10x20 ARCADE' : '12x20 CASUAL';
+      const ghostMode = settings.ghost ? 'GHOST ON' : 'GHOST OFF';
+      const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
+      drawOverlay(
+        'ARCADE STACK',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved.',
+        { large: true }
+      );
+    }
+
+    function drawRoundClearScreen(time) {
+      const elapsed = time - roundClearStartedAt;
+      const flashRows = Math.floor((Math.sin(elapsed / 95) + 1) * 0.5 * BOARD_HEIGHT);
+
+      context.save();
+      context.globalAlpha = 0.08 + 0.1 * Math.abs(Math.sin(elapsed / 120));
+      context.fillStyle = '#facc15';
+      context.fillRect(0, BOARD_HEIGHT - 1 - flashRows, boardWidth, 0.25);
+      context.restore();
+
+      drawTransitionOverlay(time);
+    }
+
+    function drawReadyGoScreen(time) {
+      const elapsed = time - readyStartedAt;
+      if (elapsed < 0 || elapsed >= READY_GO_DURATION) return;
+      const isGo = elapsed >= READY_GO_SWITCH;
+      const label = isGo ? 'GO!' : 'READY';
+      const sub = 'LV ' + player.level + '  STAGE ' + player.round + '/' + STAGES_PER_LEVEL;
+      const y = isGo ? 7.25 : 7.1;
+
+      context.save();
+      context.fillStyle = 'rgba(0, 0, 0, 0.58)';
+      context.fillRect(0, 6.35, boardWidth, 4.2);
+      context.strokeStyle = isGo ? '#38bdf8' : '#facc15';
+      context.lineWidth = 0.05;
+      context.strokeRect(0.45, 6.65, boardWidth - 0.9, 3.55);
+      drawFitText(label, boardWidth / 2, y + 0.85, boardWidth - 1.0, isGo ? 1.25 : 1.05, 900, 'white');
+      drawFitText(sub, boardWidth / 2, y + 2.05, boardWidth - 1.0, 0.46, 800, 'rgba(255,255,255,0.78)');
+      context.restore();
+    }
+
+    function draw() {
+      context.fillStyle = '#050505';
+      context.fillRect(0, 0, boardWidth, BOARD_HEIGHT);
+      drawGrid();
+      drawMatrix(arena, { x: 0, y: 0 });
+      drawLineClearEffect(performance.now());
+      drawImpactEffect(performance.now());
+
+      if (gameState === 'playing' && player.matrix) drawGhostPiece();
+      if (gameState !== 'start' && player.matrix) drawMatrix(player.matrix, player.pos);
+      drawGoalAlert(performance.now());
+      drawNextPiece();
+
+      if (gameState === 'start') {
+        drawStartScreen();
+      } else if (gameState === 'paused') {
+        drawOverlay('PAUSED', 'P 키로 재개');
+      } else if (gameState === 'roundClear') {
+        drawRoundClearScreen(performance.now());
+      } else if (gameState === 'gameover') {
+        const suffix = (lastScoreWasTop ? 'NEW TOP SCORE' : (player.score >= highScore ? 'NEW HIGH SCORE' : 'Enter 키로 재시작')) + '\n도달: LV ' + player.level + ' - STAGE ' + player.round + ' · 방해 블록: ' + player.randomBlocks;
+        drawOverlay('GAME OVER', suffix, { large: false });
+      }
+
+      if (isReadyActive(performance.now())) drawReadyGoScreen(performance.now());
+      drawTetrisAlert(performance.now());
+    }
+
+    function merge(arenaMatrix, playerState) {
+      playerState.matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) arenaMatrix[y + playerState.pos.y][x + playerState.pos.x] = value;
+        });
+      });
+    }
+
+    function isPlayerGrounded() {
+      if (gameState !== 'playing' || !player.matrix) return false;
+      player.pos.y++;
+      const grounded = collide(arena, player);
+      player.pos.y--;
+      return grounded;
+    }
+
+    function resetLockDelayOnControl() {
+      if (!isPlayerGrounded()) return;
+      if (lockResets < MAX_LOCK_RESETS) {
+        lockCounter = 0;
+        lockResets++;
+      }
+    }
+
+    function lockCurrentPiece(hard = false) {
+      merge(arena, player);
+      impactEffect = { startedAt: performance.now(), y: player.pos.y + player.matrix.length - 1, hard };
+      playSound(hard ? 'hardDrop' : 'lock');
+      lockCounter = 0;
+      lockResets = 0;
+      arenaSweep();
+      if (gameState === 'playing') playerReset();
+      saveHighScore();
+      updateStatus();
+    }
+
+    function playerDrop() {
+      if (gameState !== 'playing' || isReadyActive()) return;
+      player.pos.y++;
+      if (collide(arena, player)) {
+        player.pos.y--;
+        // Auto drop and soft drop should not lock immediately.
+        // The update loop applies a consistent 300ms lock delay so the
+        // player can make a final left/right/rotate adjustment on contact.
+        lockCounter = Math.min(lockCounter, LOCK_DELAY);
+      } else {
+        lockCounter = 0;
+        lockResets = 0;
+      }
+      dropCounter = 0;
+    }
+
+    function playerHardDrop() {
+      if (gameState !== 'playing' || isReadyActive()) return;
+      let distance = 0;
+      while (!collide(arena, player)) {
+        player.pos.y++;
+        distance++;
+      }
+      player.pos.y--;
+      distance--;
+      const multiplier = getLevelProfile(player.level).scoreMultiplier;
+      player.score += Math.max(0, Math.round(distance * 2 * multiplier));
+      lockCurrentPiece(true);
+      dropCounter = 0;
+    }
+
+    function playerMove(dir) {
+      if (gameState !== 'playing' || isReadyActive()) return;
+      player.pos.x += dir;
+      if (collide(arena, player)) player.pos.x -= dir;
+      else {
+        playSound('move');
+        resetLockDelayOnControl();
+      }
+    }
+
+    function playerReset() {
+      if (!nextMatrix) nextMatrix = createRandomPiece();
+      player.matrix = nextMatrix;
+      incrementPieceStats(player.matrix.pieceType);
+      nextMatrix = createRandomPiece();
+      player.pos.y = 0;
+      player.pos.x = (boardWidth / 2 | 0) - (player.matrix[0].length / 2 | 0);
+      lockCounter = 0;
+      lockResets = 0;
+
+      if (collide(arena, player)) {
+        saveHighScore();
+        recordGameOverScore();
+        playSound('gameover');
+        gameState = 'gameover';
+        updateStatus();
+      }
+    }
+
+    function startGame() {
+      pieceBag = [];
+      resetPieceStats();
+      player.score = 0;
+      player.lines = 0;
+      player.round = 1;
+      player.roundLines = 0;
+      player.level = selectedStartLevel;
+      player.completedStages = 0;
+      player.piecesSinceLineClear = 0;
+      player.randomBlocks = 0;
+      gameOverRecorded = false;
+      lastScoreWasTop = false;
+      lineClearEffect = { rows: [], startedAt: 0 };
+      goalAlert = { text: '', startedAt: 0, remaining: null };
+      tetrisAlert = { active: false, startedAt: 0, bonus: 0 };
+      impactEffect = { startedAt: 0, y: 0, hard: false };
+      playSound('start');
+      lastBonus = { emptyRows: 0, clean: 0, level: 0, total: 0 };
+      updateDifficulty();
+      dropCounter = 0;
+      roundClearStartedAt = 0;
+      overlayTitle = '';
+      overlaySubtitle = '';
+      overlayIsArcadeClear = false;
+      nextMatrix = createRandomPiece();
+      applyRoundPattern();
+      playerReset();
+      beginReadyGo();
+      updateStatus();
+    }
+
+    function getOccupiedBounds(matrix) {
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      for (let y = 0; y < matrix.length; y++) {
+        for (let x = 0; x < matrix[y].length; x++) {
+          if (matrix[y][x] !== 0) {
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y);
+            maxY = Math.max(maxY, y);
+          }
+        }
+      }
+
+      if (minX === Infinity) {
+        return { minX: 0, maxX: 0, minY: 0, maxY: 0, width: 0, height: 0 };
+      }
+      return {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
+      };
+    }
+
+    function getRotationAnchorOffset(matrix) {
+      const bounds = getOccupiedBounds(matrix);
+      if (matrix.pieceType !== 'I') return 0;
+
+      // The long I piece needs a different arcade-feel pivot than the
+      // other pieces. General pieces keep the visible left edge aligned.
+      // For I, use a point inside the piece instead: vertical I uses the
+      // cell just right of its left edge, while horizontal I uses the next
+      // inner point. This makes horizontal -> vertical move one column to
+      // the right, and vertical -> horizontal reserve more room on the
+      // right wall.
+      const isHorizontal = bounds.width > bounds.height;
+      return isHorizontal ? 2 : 1;
+    }
+
+    function getWorldRotationAnchor(matrix, posX) {
+      const bounds = getOccupiedBounds(matrix);
+      return posX + bounds.minX + getRotationAnchorOffset(matrix);
+    }
+
+    function playerRotate(dir) {
+      if (gameState !== 'playing' || isReadyActive()) return;
+
+      const originalX = player.pos.x;
+      const originalAnchor = getWorldRotationAnchor(player.matrix, player.pos.x);
+      let offset = 1;
+
+      rotate(player.matrix, dir);
+
+      // Arcade-style rotation:
+      // T/O/J/L/S/Z keep the visible left edge aligned.
+      // I rotates around an anchor one step in from the left so it feels
+      // closer to the arcade cabinet behavior and works better near the
+      // right wall.
+      const rotatedAnchor = getWorldRotationAnchor(player.matrix, player.pos.x);
+      player.pos.x += originalAnchor - rotatedAnchor;
+
+      while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (Math.abs(offset) > player.matrix[0].length + 2) {
+          rotate(player.matrix, -dir);
+          player.pos.x = originalX;
+          return;
+        }
+      }
+      playSound('rotate');
+      resetLockDelayOnControl();
+    }
+
+    function rotate(matrix, dir) {
+      for (let y = 0; y < matrix.length; ++y) {
+        for (let x = 0; x < y; ++x) {
+          [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+        }
+      }
+      if (dir > 0) matrix.forEach(row => row.reverse());
+      else matrix.reverse();
+    }
+
+    function update(time = 0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+
+      if (gameState === 'playing') {
+        if (readyStartedAt > 0) {
+          const readyElapsed = time - readyStartedAt;
+          if (!readyGoSoundPlayed && readyElapsed >= READY_GO_SWITCH) {
+            readyGoSoundPlayed = true;
+            playSound('go');
+          }
+          if (readyElapsed < READY_GO_DURATION) {
+            draw();
+            requestAnimationFrame(update);
+            return;
+          }
+          readyStartedAt = 0;
+          dropCounter = 0;
+          lockCounter = 0;
+          lockResets = 0;
+        }
+
+        dropCounter += deltaTime;
+
+        if (isPlayerGrounded()) {
+          lockCounter += deltaTime;
+          if (lockCounter >= LOCK_DELAY) {
+            lockCurrentPiece(false);
+          }
+        } else {
+          lockCounter = 0;
+          lockResets = 0;
+        }
+
+        if (gameState === 'playing' && dropCounter > dropInterval) playerDrop();
+      } else if (gameState === 'roundClear' && roundClearStartedAt > 0) {
+        if (time - roundClearStartedAt >= ROUND_CLEAR_DELAY) startNextRound();
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    const colors = [
+      null,
+      { base: '#22c55e', light: '#86efac', dark: '#166534' },
+      { base: '#3b82f6', light: '#93c5fd', dark: '#1e40af' },
+      { base: '#a855f7', light: '#d8b4fe', dark: '#6b21a8' },
+      { base: '#eab308', light: '#fde68a', dark: '#a16207' },
+      { base: '#ef4444', light: '#fca5a5', dark: '#991b1b' },
+      { base: '#06b6d4', light: '#67e8f9', dark: '#155e75' },
+      { base: '#f97316', light: '#fdba74', dark: '#9a3412' },
+      { base: '#64748b', light: '#cbd5e1', dark: '#334155' },
+      { base: '#94a3b8', light: '#e2e8f0', dark: '#475569' },
+      { base: '#475569', light: '#94a3b8', dark: '#1e293b' },
+      { base: '#f59e0b', light: '#fde68a', dark: '#92400e' },
+      { base: '#14b8a6', light: '#99f6e4', dark: '#0f766e' },
+      { base: '#ec4899', light: '#f9a8d4', dark: '#9d174d' },
+      { base: '#8b5cf6', light: '#c4b5fd', dark: '#5b21b6' },
+      { base: '#f43f5e', light: '#fda4af', dark: '#9f1239' },
+      { base: '#84cc16', light: '#d9f99d', dark: '#4d7c0f' },
+    ];
+
+
+    function handleMobileAction(action) {
+      ensureAudio();
+      if (action === 'left') playerMove(-1);
+      else if (action === 'right') playerMove(1);
+      else if (action === 'rotate') playerRotate(-1);
+      else if (action === 'soft') playerDrop();
+      else if (action === 'hard') playerHardDrop();
+      else if (action === 'pause') {
+        if (gameState === 'playing' && !isReadyActive()) gameState = 'paused';
+        else if (gameState === 'paused') gameState = 'playing';
+        updateStatus();
+      } else if (action === 'start') {
+        if (gameState === 'start' || gameState === 'gameover') startGame();
+        else if (gameState === 'roundClear') startNextRound();
+        else if (gameState === 'paused') { gameState = 'playing'; updateStatus(); }
+      } else if (action === 'level-down') {
+        if (gameState === 'start' || gameState === 'gameover') setStartLevel(selectedStartLevel - 1);
+      } else if (action === 'level-up') {
+        if (gameState === 'start' || gameState === 'gameover') setStartLevel(selectedStartLevel + 1);
+      }
+    }
+
+    function bindTouchButton(button) {
+      const action = button.dataset.touch;
+      const repeating = action === 'left' || action === 'right' || action === 'soft';
+      let repeatDelay = null;
+      let repeatInterval = null;
+      let activePointerId = null;
+      let pressed = false;
+      let lastTapTime = 0;
+
+      const clearRepeat = () => {
+        button.classList.remove('is-pressed');
+        if (repeatDelay) clearTimeout(repeatDelay);
+        if (repeatInterval) clearInterval(repeatInterval);
+        repeatDelay = null;
+        repeatInterval = null;
+        activePointerId = null;
+        pressed = false;
+      };
+
+      const runOnce = () => {
+        const now = performance.now();
+        if (now - lastTapTime < 70) return;
+        lastTapTime = now;
+        handleMobileAction(action);
+      };
+
+      button.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        if (pressed) return;
+        pressed = true;
+        activePointerId = event.pointerId;
+        button.setPointerCapture?.(event.pointerId);
+        button.classList.add('is-pressed');
+
+        runOnce();
+
+        if (repeating) {
+          repeatDelay = setTimeout(() => {
+            repeatInterval = setInterval(() => handleMobileAction(action), action === 'soft' ? 95 : 115);
+          }, 220);
+        }
+      }, { passive: false });
+
+      button.addEventListener('pointerup', event => {
+        event.preventDefault();
+        if (activePointerId === null || event.pointerId === activePointerId) clearRepeat();
+      }, { passive: false });
+      button.addEventListener('pointercancel', clearRepeat);
+      button.addEventListener('pointerleave', event => {
+        if (activePointerId === null || event.pointerId === activePointerId) clearRepeat();
+      });
+      button.addEventListener('click', event => event.preventDefault());
+      button.addEventListener('contextmenu', event => event.preventDefault());
+    }
+
+    touchButtons.forEach(bindTouchButton);
+
+    document.addEventListener('touchmove', event => {
+      if (isMobileLayout()) event.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('resize', updateResponsiveSize);
+    window.addEventListener('orientationchange', () => setTimeout(updateResponsiveSize, 250));
+
+    difficultyCards.forEach(card => {
+      card.addEventListener('click', () => { ensureAudio(); setStartLevel(card.dataset.level); });
+    });
+
+    optionCards.forEach(card => {
+      card.addEventListener('click', () => { ensureAudio(); setOption(card.dataset.option, card.dataset.value); });
+    });
+
+    document.addEventListener('keydown', event => {
+      ensureAudio();
+      if (gameState === 'start' || gameState === 'gameover') {
+        if (event.keyCode >= 49 && event.keyCode <= 57) setStartLevel(event.keyCode - 48);
+        if (event.keyCode === 48) setStartLevel(10);
+      }
+
+      if (event.keyCode === 13) {
+        if (gameState === 'start' || gameState === 'gameover') startGame();
+        else if (gameState === 'roundClear') startNextRound();
+        return;
+      }
+
+      if (event.keyCode === 80) {
+        if (gameState === 'playing' && !isReadyActive()) gameState = 'paused';
+        else if (gameState === 'paused') gameState = 'playing';
+        updateStatus();
+        return;
+      }
+
+      if (gameState !== 'playing') return;
+
+      if (event.keyCode === 37) {
+        playerMove(-1);
+      } else if (event.keyCode === 39) {
+        playerMove(1);
+      } else if (event.keyCode === 40) {
+        playerHardDrop();
+      } else if (event.keyCode === 38) {
+        playerRotate(-1);
+      } else if (event.keyCode === 32) {
+        event.preventDefault();
+        playerDrop();
+      }
+    });
+
+    buildPieceStatsUI();
+    applyCanvasSize();
+    syncLevelButtons();
+    syncOptionButtons();
+    renderScoreTable();
+    updateStatus();
+    update();
+  </script>
+</body>
+</html>
