@@ -600,6 +600,172 @@
 
 
 
+
+
+    #quick-cover {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fafc 0%, #e5e7eb 100%);
+      color: #111827;
+      font-family: Arial, sans-serif;
+      text-align: left;
+    }
+
+    body.quick-cover #quick-cover {
+      display: flex;
+    }
+
+    .cover-window {
+      width: min(100%, 860px);
+      min-height: 520px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(17, 24, 39, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 34px 90px rgba(15, 23, 42, 0.22);
+      overflow: hidden;
+    }
+
+    .cover-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 42px;
+      padding: 0 15px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .cover-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    .cover-address {
+      flex: 1;
+      margin-left: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #dbe2ea;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .cover-content {
+      padding: 36px 42px 34px;
+    }
+
+    .cover-kicker {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .cover-title {
+      margin: 0 0 8px;
+      font-size: 34px;
+      line-height: 1.08;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-subtitle {
+      margin: 0 0 28px;
+      color: #475569;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+    }
+
+    .cover-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .cover-card h3 {
+      margin: 0 0 12px;
+      color: #111827;
+      font-size: 16px;
+    }
+
+    .cover-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .cover-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .cover-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .cover-tag {
+      flex: 0 0 auto;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .cover-search {
+      margin-top: 15px;
+      height: 42px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .cover-footer {
+      margin-top: 20px;
+      color: #94a3b8;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    @media (max-width: 760px) {
+      #quick-cover { padding: 14px; }
+      .cover-window { min-height: 72dvh; }
+      .cover-content { padding: 26px 20px; }
+      .cover-title { font-size: 28px; }
+      .cover-grid { grid-template-columns: 1fr; }
+    }
+
     #mobile-controls {
       display: none;
       width: min(100%, 440px);
@@ -1032,6 +1198,7 @@
             <div class="help-row"><span class="key">Space</span><span class="desc">한 칸</span></div>
             <div class="help-row"><span class="key">P</span><span class="desc">정지</span></div>
             <div class="help-row"><span class="key">Enter</span><span class="desc">시작/재시작</span></div>
+            <div class="help-row"><span class="key">Shift+0</span><span class="desc">Quick Cover</span></div>
           </div>
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
@@ -1058,6 +1225,38 @@
     </section>
     <div id="mobile-copyright">© 2027 James. All rights reserved.</div>
   </main>
+
+  <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
+    <div class="cover-window">
+      <div class="cover-bar">
+        <span class="cover-dot"></span>
+        <span class="cover-dot"></span>
+        <span class="cover-dot"></span>
+        <div class="cover-address">workspace.local / productivity / dashboard</div>
+      </div>
+      <div class="cover-content">
+        <div class="cover-kicker">Workspace Dashboard</div>
+        <h2 class="cover-title">Project Review</h2>
+        <p class="cover-subtitle">Today’s summary, follow-up items, and planning notes are listed below.</p>
+        <div class="cover-grid">
+          <div class="cover-card">
+            <h3>Today</h3>
+            <ul class="cover-list">
+              <li><span>Review weekly metrics</span><span class="cover-tag">In progress</span></li>
+              <li><span>Prepare client summary</span><span class="cover-tag">Draft</span></li>
+              <li><span>Update project roadmap</span><span class="cover-tag">Pending</span></li>
+              <li><span>Check team action items</span><span class="cover-tag">Open</span></li>
+            </ul>
+          </div>
+          <div class="cover-card">
+            <h3>Quick Search</h3>
+            <div class="cover-search">Search notes, files, or tasks</div>
+            <div class="cover-footer">Shift + 0 to return</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <script>
     const canvas = document.getElementById('tetris');
@@ -1093,6 +1292,7 @@
     const mobileCopyrightElement = document.getElementById('mobile-copyright');
     const mobileTopbarElement = document.getElementById('mobile-topbar');
     const touchButtons = Array.from(document.querySelectorAll('[data-touch]'));
+    const quickCoverElement = document.getElementById('quick-cover');
 
     const BLOCK_SIZE = 30;
     const BOARD_HEIGHT = 20;
@@ -1163,6 +1363,8 @@
     let gameOverRecorded = false;
     let lastScoreWasTop = false;
     let audioContext = null;
+    let quickCoverActive = false;
+    let quickCoverStartedAt = 0;
 
     function applyCanvasSize() {
       boardWidth = settings.boardWidth;
@@ -1540,6 +1742,45 @@
       focusRandomElement.innerText = randomLabel;
       lockOptionsDuringPlay();
       updateResponsiveSize();
+    }
+
+
+    function isQuickCoverShortcut(event) {
+      return event.shiftKey && (event.code === 'Digit0' || event.key === '0' || event.key === ')' || event.keyCode === 48);
+    }
+
+    function toggleQuickCover() {
+      const now = performance.now();
+
+      if (!quickCoverActive) {
+        quickCoverActive = true;
+        quickCoverStartedAt = now;
+        document.body.classList.add('quick-cover');
+        if (quickCoverElement) quickCoverElement.setAttribute('aria-hidden', 'false');
+
+        if (gameState === 'playing') {
+          gameState = 'paused';
+        }
+        updateStatus();
+        return;
+      }
+
+      quickCoverActive = false;
+      const pausedDuration = quickCoverStartedAt ? now - quickCoverStartedAt : 0;
+      quickCoverStartedAt = 0;
+
+      if (pausedDuration > 0) {
+        if (roundClearStartedAt) roundClearStartedAt += pausedDuration;
+        if (readyStartedAt) readyStartedAt += pausedDuration;
+        if (goalAlert.startedAt) goalAlert.startedAt += pausedDuration;
+        if (tetrisAlert.startedAt) tetrisAlert.startedAt += pausedDuration;
+        if (lineClearEffect.startedAt) lineClearEffect.startedAt += pausedDuration;
+      }
+
+      document.body.classList.remove('quick-cover');
+      if (quickCoverElement) quickCoverElement.setAttribute('aria-hidden', 'true');
+      lastTime = now;
+      updateStatus();
     }
 
     function ensureAudio() {
@@ -2614,6 +2855,12 @@
       const deltaTime = time - lastTime;
       lastTime = time;
 
+      if (quickCoverActive) {
+        draw();
+        requestAnimationFrame(update);
+        return;
+      }
+
       if (gameState === 'playing') {
         if (readyStartedAt > 0) {
           const readyElapsed = time - readyStartedAt;
@@ -2769,6 +3016,18 @@
     });
 
     document.addEventListener('keydown', event => {
+      if (isQuickCoverShortcut(event)) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleQuickCover();
+        return;
+      }
+
+      if (quickCoverActive) {
+        event.preventDefault();
+        return;
+      }
+
       ensureAudio();
       if (gameState === 'start' || gameState === 'gameover') {
         if (event.keyCode >= 49 && event.keyCode <= 57) setStartLevel(event.keyCode - 48);
