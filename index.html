@@ -1304,7 +1304,7 @@
     const ROUND_CLEAR_DELAY = 3000;
     const READY_GO_DURATION = 1000;
     const READY_GO_SWITCH = 650;
-    const LOCK_DELAY = 300;
+    const LOCK_DELAY = 350;
     const MAX_LOCK_RESETS = 8;
     const PIECE_ORDER = ['I', 'T', 'O', 'J', 'L', 'S', 'Z'];
 
@@ -2654,7 +2654,7 @@
 
       // Limited Lock Reset:
       // When a grounded piece is successfully moved or rotated, give the
-      // player a fresh 300ms adjustment window. This is especially important
+      // player a fresh 350ms adjustment window. This is especially important
       // in late levels where pieces touch uneven stacks more often. The reset
       // count is capped so the piece cannot be stalled forever.
       if (lockResets < MAX_LOCK_RESETS) {
