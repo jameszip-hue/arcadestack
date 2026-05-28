@@ -1198,7 +1198,7 @@
             <div class="help-row"><span class="key">Space</span><span class="desc">한 칸</span></div>
             <div class="help-row"><span class="key">P</span><span class="desc">정지</span></div>
             <div class="help-row"><span class="key">Enter</span><span class="desc">시작/재시작</span></div>
-            <div class="help-row"><span class="key">Shift+0</span><span class="desc">Quick Cover</span></div>
+            <div class="help-row"><span class="key">O</span><span class="desc">Quick Cover</span></div>
           </div>
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
@@ -1251,7 +1251,7 @@
           <div class="cover-card">
             <h3>Quick Search</h3>
             <div class="cover-search">Search notes, files, or tasks</div>
-            <div class="cover-footer">Shift + 0 to return</div>
+            <div class="cover-footer">Press O to return</div>
           </div>
         </div>
       </div>
@@ -1746,7 +1746,7 @@
 
 
     function isQuickCoverShortcut(event) {
-      return event.shiftKey && (event.code === 'Digit0' || event.key === '0' || event.key === ')' || event.keyCode === 48);
+      return event.key && event.key.toLowerCase() === 'o';
     }
 
     function toggleQuickCover() {
