@@ -1305,7 +1305,7 @@
     const READY_GO_DURATION = 1000;
     const READY_GO_SWITCH = 650;
     const LOCK_DELAY = 300;
-    const MAX_LOCK_RESETS = 6;
+    const MAX_LOCK_RESETS = 8;
     const PIECE_ORDER = ['I', 'T', 'O', 'J', 'L', 'S', 'Z'];
 
     let boardWidth = 10;
@@ -2651,6 +2651,12 @@
 
     function resetLockDelayOnControl() {
       if (!isPlayerGrounded()) return;
+
+      // Limited Lock Reset:
+      // When a grounded piece is successfully moved or rotated, give the
+      // player a fresh 300ms adjustment window. This is especially important
+      // in late levels where pieces touch uneven stacks more often. The reset
+      // count is capped so the piece cannot be stalled forever.
       if (lockResets < MAX_LOCK_RESETS) {
         lockCounter = 0;
         lockResets++;
@@ -2675,8 +2681,8 @@
       if (collide(arena, player)) {
         player.pos.y--;
         // Auto drop and soft drop should not lock immediately.
-        // The update loop applies a consistent 300ms lock delay so the
-        // player can make a final left/right/rotate adjustment on contact.
+        // Keep the current lock timer; movement/rotation can refresh it via
+        // Limited Lock Reset, while hard drop remains an intentional instant lock.
         lockCounter = Math.min(lockCounter, LOCK_DELAY);
       } else {
         lockCounter = 0;
