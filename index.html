@@ -76,6 +76,17 @@
     }
 
 
+    .version-tag {
+      display: block;
+      margin-top: 3px;
+      font-size: 8px;
+      line-height: 1.1;
+      letter-spacing: 0.08em;
+      color: rgba(249, 250, 251, 0.34);
+      text-align: center;
+    }
+
+
 
     #mobile-topbar {
       width: 100%;
@@ -1058,7 +1069,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved.</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v55</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1203,7 +1214,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.</div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v55</span></div>
       </aside>
     </div>
 
@@ -1223,7 +1234,7 @@
         <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved.</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v55</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -2668,7 +2679,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved.',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v55',
         { large: true }
       );
     }
