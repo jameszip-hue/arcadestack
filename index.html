@@ -1069,7 +1069,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v55</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v56</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1095,7 +1095,7 @@
         </div>
         <div class="stat">
           <div class="stat-label">Mode</div>
-          <div class="stat-value" id="mode">10/Classic</div>
+          <div class="stat-value" id="mode">10/Fair</div>
         </div>
       </section>
       <section id="mobile-next-panel" aria-label="모바일 다음 블록">
@@ -1160,15 +1160,15 @@
           <div class="option-group">
             <div class="option-label">GHOST</div>
             <div class="option-grid">
-              <button class="option-card" data-option="ghost" data-value="on"><b>ON</b><span>편의</span></button>
-              <button class="option-card active" data-option="ghost" data-value="off"><b>OFF</b><span>원작</span></button>
+              <button class="option-card active" data-option="ghost" data-value="on"><b>ON</b><span>편의</span></button>
+              <button class="option-card" data-option="ghost" data-value="off"><b>OFF</b><span>원작</span></button>
             </div>
           </div>
           <div class="option-group">
             <div class="option-label">RANDOM</div>
             <div class="option-grid">
-              <button class="option-card" data-option="random" data-value="fair"><b>Fair</b><span>7-bag</span></button>
-              <button class="option-card active" data-option="random" data-value="classic"><b>Classic</b><span>순수</span></button>
+              <button class="option-card active" data-option="random" data-value="fair"><b>Fair</b><span>7-bag</span></button>
+              <button class="option-card" data-option="random" data-value="classic"><b>Classic</b><span>순수</span></button>
             </div>
           </div>
           <div class="option-group">
@@ -1188,8 +1188,8 @@
           <div class="focus-row"><span>Stage</span><b id="focus-stage">1/3</b></div>
           <div class="focus-row"><span>Lines</span><b id="focus-lines">0/5</b></div>
           <div class="focus-row"><span>Board</span><b id="focus-board">10</b></div>
-          <div class="focus-row"><span>Ghost</span><b id="focus-ghost">OFF</b></div>
-          <div class="focus-row"><span>Random</span><b id="focus-random">Classic</b></div>
+          <div class="focus-row"><span>Ghost</span><b id="focus-ghost">ON</b></div>
+          <div class="focus-row"><span>Random</span><b id="focus-random">Fair</b></div>
           <div class="mini-note">설정은 시작 전 또는 게임오버에서 변경</div>
         </section>
 
@@ -1214,7 +1214,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v55</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v56</span></div>
       </aside>
     </div>
 
@@ -1234,7 +1234,7 @@
         <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v55</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v56</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1309,7 +1309,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV33';
+    const SETTINGS_KEY = 'arcadeStackSettingsV56';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const ROUND_CLEAR_DELAY = 3000;
@@ -1329,8 +1329,8 @@
 
     const savedSettings = loadSettings();
     const settings = {
-      ghost: savedSettings.ghost ?? (isMobileLayout() ? true : false),
-      randomizer: savedSettings.randomizer || 'classic',
+      ghost: savedSettings.ghost ?? true,
+      randomizer: savedSettings.randomizer || 'fair',
       boardWidth: savedSettings.boardWidth || 10,
       sound: savedSettings.sound ?? true,
     };
@@ -2679,7 +2679,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v55',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v56',
         { large: true }
       );
     }
