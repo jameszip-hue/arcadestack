@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARCADE STACK - ROUND DISPLAY FIXED</title>
+  <title>ARCADE STACK - R5 ARCADE PATTERN</title>
   <style>
     :root {
       --cell-size: 30px;
@@ -1069,7 +1069,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v60</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v61</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1214,7 +1214,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v60</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v61</span></div>
       </aside>
     </div>
 
@@ -1234,7 +1234,7 @@
         <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v60</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v61</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1954,18 +1954,29 @@
     }
 
     function applyAtariScatter10() {
-      const occupied = new Set();
-      let guard = 0;
-      while (occupied.size < 10 && guard < 200) {
-        guard++;
-        const x = Math.floor(Math.random() * boardWidth);
-        const y = BOARD_HEIGHT - 1 - Math.floor(Math.random() * 5);
-        const key = x + ',' + y;
-        if (!occupied.has(key)) {
-          occupied.add(key);
-          setCellSafe(x, y, randomGarbageValue());
-        }
-      }
+      // Round 5 tuning: use a fixed arcade-style scattered bottom layout.
+      // The original arcade round does not feel like pure random scatter; it
+      // has a recognizable asymmetric spread across the lower five rows.
+      // Coordinates are defined for a 10-wide board and centered if 12-wide is
+      // selected, so R5/R20/R23 keep the same tactical shape.
+      const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const cells = [
+        // x, rows from bottom, color value
+        [0, 4, 15], // upper-left red/pink block
+        [2, 3, 2],  // blue block
+        [4, 4, 1],  // green upper-middle block
+        [6, 3, 11], // yellow block
+        [7, 3, 13], // magenta block
+        [5, 2, 6],  // cyan middle block
+        [9, 1, 5],  // right red block
+        [3, 1, 11], // orange/yellow lower-middle block
+        [1, 0, 16], // lower-left green block
+        [6, 0, 2],  // lower blue block
+      ];
+
+      cells.forEach(([x, fromBottom, value]) => {
+        setCellSafe(x + leftPad, BOARD_HEIGHT - 1 - fromBottom, value);
+      });
     }
 
     function applyTwinTriangles() {
@@ -2836,7 +2847,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v60',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v61',
         { large: true }
       );
     }
