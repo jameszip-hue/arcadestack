@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARCADE STACK - R5 PATTERN TUNED</title>
+  <title>ARCADE STACK - R4 COLOR TUNED</title>
   <style>
     :root {
       --cell-size: 30px;
@@ -1110,7 +1110,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v65</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v66</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1251,7 +1251,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v65</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v66</span></div>
       </aside>
     </div>
 
@@ -1271,7 +1271,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v65</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v66</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1350,7 +1350,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV65';
+    const SETTINGS_KEY = 'arcadeStackSettingsV66';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -2012,10 +2012,18 @@
     }
 
     function applyAtariSideWall8() {
+      // Round 4 tuning: keep the 8-high side columns, but use a fixed
+      // arcade-style color order based on the reference screen.
+      // Arrays are defined from bottom to top.
+      const leftColumn = [5, 6, 4, 1, 7, 3, 2, 5];
+      const rightColumn = [1, 7, 3, 2, 5, 6, 4, 1];
+      const leftX = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const rightX = Math.min(boardWidth - 1, leftX + 9);
+
       for (let i = 0; i < 8; i++) {
         const y = BOARD_HEIGHT - 1 - i;
-        setCellSafe(0, y, randomGarbageValue());
-        setCellSafe(boardWidth - 1, y, randomGarbageValue());
+        setCellSafe(leftX, y, leftColumn[i]);
+        setCellSafe(rightX, y, rightColumn[i]);
       }
     }
 
@@ -2929,7 +2937,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v65',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v66',
         { large: true }
       );
     }
