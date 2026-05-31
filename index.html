@@ -1069,7 +1069,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v56</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v58</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1214,7 +1214,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v56</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v58</span></div>
       </aside>
     </div>
 
@@ -1234,7 +1234,7 @@
         <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v56</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v58</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1309,7 +1309,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV56';
+    const SETTINGS_KEY = 'arcadeStackSettingsV58';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const ROUND_CLEAR_DELAY = 3000;
@@ -1654,65 +1654,79 @@
       optionCards.forEach(card => card.disabled = disabled);
     }
 
-    function getStageGoal(level, stage) {
+    function getAbsoluteRound(level = player.level, stage = player.round) {
+      return Math.max(1, ((Math.max(1, level) - 1) * STAGES_PER_LEVEL) + Math.max(1, stage));
+    }
+
+    function getAtariRoundNumber(level = player.level, stage = player.round) {
+      const absoluteRound = getAbsoluteRound(level, stage);
+      if (absoluteRound <= 27) return absoluteRound;
+      return 16 + ((absoluteRound - 16) % 12);
+    }
+
+    function getAtariRoundConfig(level = player.level, stage = player.round) {
+      const round = getAtariRoundNumber(level, stage);
       const goals = {
-        // Final regular arcade balance: faster early wins, less fatigue on mobile.
-        1: [5, 7, 9],
-        2: [8, 10, 12],
-        3: [10, 12, 14],
-        4: [9, 11, 13],
-        5: [11, 13, 15],
-        6: [13, 15, 17],
-        7: [15, 17, 19],
-        8: [16, 18, 20],
-        9: [18, 20, 22],
-        10: [20, 22, 24],
-        // Expert loop: challenging but not punishingly long.
-        11: [22, 24, 26],
-        12: [23, 25, 27],
-        13: [24, 26, 28],
-        14: [25, 27, 29],
-        15: [26, 28, 30],
-        16: [24, 27, 30],
-        17: [25, 28, 30],
-        18: [26, 29, 30],
-        19: [27, 30, 30],
-        20: [28, 30, 30],
+        1: 5, 2: 10, 3: 12,
+        4: 10, 5: 13, 6: 16,
+        7: 12, 8: 15, 9: 18,
+        10: 12, 11: 15, 12: 18,
+        13: 12, 14: 15, 15: 18,
+        16: 12, 17: 15, 18: 18,
+        19: 12, 20: 15, 21: 18,
+        22: 12, 23: 15, 24: 18,
+        25: 12, 26: 15, 27: 18,
       };
-      if (goals[level]) return goals[level][stage - 1];
-      if (level >= 30) return [30, 30, 30][stage - 1];
-      if (level >= 25) return [29, 30, 30][stage - 1];
-      return [28, 30, 30][stage - 1];
+
+      const tricks = {
+        1: { type: 'none', note: 'No trick' },
+        2: { type: 'none', note: 'No trick' },
+        3: { type: 'none', note: 'No trick' },
+        4: { type: 'start', start: 'sideWall8', note: 'Side wall start' },
+        5: { type: 'start', start: 'scatter10', note: '10 scattered blocks' },
+        6: { type: 'start', start: 'pyramid', note: 'Pyramid start' },
+        7: { type: 'single', threshold: 8, note: 'Surface block / 8 pieces' },
+        8: { type: 'single', threshold: 5, note: 'Surface block / 5 pieces' },
+        9: { type: 'single', threshold: 3, note: 'Surface block / 3 pieces' },
+        10: { type: 'garbage', threshold: 8, note: 'Garbage row / 8 pieces' },
+        11: { type: 'garbage', threshold: 6, note: 'Garbage row / 6 pieces' },
+        12: { type: 'garbage', threshold: 3, note: 'Garbage row / 3 pieces' },
+        13: { type: 'start', start: 'twinTriangles', note: 'Twin triangles' },
+        14: { type: 'start', start: 'sixBlocks246', note: 'Six block start' },
+        15: { type: 'start', start: 'diagonal4', note: 'Four diagonal rows' },
+        16: { type: 'start', start: 'initial1', note: 'Top score initial #1' },
+        17: { type: 'start', start: 'initial2', note: 'Top score initial #2' },
+        18: { type: 'start', start: 'initial3', note: 'Top score initial #3' },
+        19: { type: 'startSingle', start: 'sideWall8', threshold: 8, note: 'R4 start + block / 8' },
+        20: { type: 'startSingle', start: 'scatter10', threshold: 6, note: 'R5 start + block / 6' },
+        21: { type: 'startSingle', start: 'pyramid', threshold: 3, note: 'R6 start + block / 3' },
+        22: { type: 'startGarbage', start: 'sideWall8', threshold: 8, note: 'R4 start + garbage / 8' },
+        23: { type: 'startGarbage', start: 'scatter10', threshold: 6, note: 'R5 start + garbage / 6' },
+        24: { type: 'startGarbage', start: 'pyramid', threshold: 3, note: 'R6 start + garbage / 3' },
+        25: { type: 'combo', start: 'oneGarbageRow', threshold: 8, note: 'Garbage + block / 8' },
+        26: { type: 'combo', start: 'oneGarbageRow', threshold: 6, note: 'Garbage + block / 6' },
+        27: { type: 'combo', start: 'oneGarbageRow', threshold: 3, note: 'Garbage + block / 3' },
+      };
+
+      return { round, goal: goals[round] || 12, ...(tricks[round] || tricks[1]) };
+    }
+
+    function getStageGoal(level, stage) {
+      return getAtariRoundConfig(level, stage).goal;
     }
 
     function getStagePatternRows(level, stage) {
-      const rows = {
-        1: [0, 1, 2],
-        2: [0, 1, 2],
-        3: [1, 2, 3],
-        4: [2, 3, 4],
-        5: [3, 4, 5],
-        6: [3, 4, 5],
-        7: [5, 6, 7],
-        8: [6, 7, 8],
-        9: [6, 7, 8],
-        10: [6, 7, 8],
-        // Expert Loop balance: keep the starting pressure playable on PC and mobile.
-        // Level 11+ should feel different through pattern rotation, not by filling
-        // half the board before the player can act.
-        11: [7, 8, 8],
-        12: [7, 8, 8],
-        13: [7, 8, 8],
-        14: [8, 8, 8],
-        15: [8, 8, 8],
-        16: [8, 8, 8],
-        17: [8, 8, 8],
-        18: [8, 8, 8],
-        19: [8, 8, 8],
-        20: [8, 8, 8],
-      };
-      if (rows[level]) return rows[level][stage - 1];
-      return [8, 8, 8][stage - 1];
+      const config = getAtariRoundConfig(level, stage);
+      if (!config.start) return 0;
+      if (config.start === 'sideWall8') return 8;
+      if (config.start === 'scatter10') return 5;
+      if (config.start === 'pyramid') return 7;
+      if (config.start === 'twinTriangles') return 6;
+      if (config.start === 'sixBlocks246') return 6;
+      if (config.start === 'diagonal4') return 4;
+      if (config.start === 'oneGarbageRow') return 1;
+      if (config.start && config.start.indexOf('initial') === 0) return 5;
+      return 0;
     }
 
     function getRoundGoal() {
@@ -1734,11 +1748,11 @@
       document.body.dataset.state = gameState;
       scoreElement.innerText = formatNumber(player.score);
       highScoreElement.innerText = formatNumber(highScore);
-      roundElement.innerText = player.round + '/' + STAGES_PER_LEVEL;
+      roundElement.innerText = 'R' + getAtariRoundConfig(currentLevel, player.round || 1).round;
       goalElement.innerText = player.roundLines + '/' + goal;
       levelElement.innerText = currentLevel;
       modeElement.innerText = widthLabel + '/' + randomLabel;
-      roundDetailElement.innerText = 'LEVEL ' + currentLevel + ' - STAGE ' + player.round + ' · ' + goal + '줄';
+      { const rc = getAtariRoundConfig(currentLevel, player.round || 1); roundDetailElement.innerText = 'ROUND ' + rc.round + ' · GOAL ' + goal + ' · ' + rc.note; }
       roundProgressElement.style.width = progress + '%';
       const remainingLines = Math.max(0, goal - player.roundLines);
       const goalStat = goalElement.closest('.stat');
@@ -1752,7 +1766,7 @@
       bonusLevelElement.innerText = formatNumber(lastBonus.level);
       bonusTotalElement.innerText = formatNumber(lastBonus.total);
       focusLevelElement.innerText = currentLevel;
-      focusStageElement.innerText = player.round + '/' + STAGES_PER_LEVEL;
+      focusStageElement.innerText = 'R' + getAtariRoundConfig(currentLevel, player.round || 1).round;
       focusLinesElement.innerText = player.roundLines + '/' + goal;
       focusBoardElement.innerText = settings.boardWidth + 'x20';
       focusGhostElement.innerText = ghostLabel;
@@ -1901,37 +1915,123 @@
 
     function applyRoundPattern() {
       clearArena();
-      const level = player.level;
-      const stage = player.round || 1;
-      const baseRows = getStagePatternRows(level, stage);
-      if (baseRows <= 0) return;
+      const config = getAtariRoundConfig(player.level, player.round || 1);
+      applyAtariStartPattern(config.start || 'none');
+    }
 
-      // Keep actual starting pressure capped at 8 rows. Higher levels become
-      // harder through speed cap pressure, goals, and varied patterns rather than
-      // by starting from a nearly half-filled board.
-      const cappedRows = Math.min(8, baseRows);
+    function applyAtariStartPattern(pattern) {
+      if (!pattern || pattern === 'none') return;
+      if (pattern === 'sideWall8') applyAtariSideWall8();
+      else if (pattern === 'scatter10') applyAtariScatter10();
+      else if (pattern === 'pyramid') applyPyramid(7);
+      else if (pattern === 'twinTriangles') applyTwinTriangles();
+      else if (pattern === 'sixBlocks246') applySixBlocks246();
+      else if (pattern === 'diagonal4') applyAtariDiagonal4();
+      else if (pattern === 'initial1') applyInitialPattern(0);
+      else if (pattern === 'initial2') applyInitialPattern(1);
+      else if (pattern === 'initial3') applyInitialPattern(2);
+      else if (pattern === 'oneGarbageRow') addGarbageRow();
+    }
 
-      if (level >= 11) {
-        applyExpertPatternRotation(cappedRows, level, stage);
-        return;
+    function applyAtariSideWall8() {
+      for (let i = 0; i < 8; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        setCellSafe(0, y, randomGarbageValue());
+        setCellSafe(boardWidth - 1, y, randomGarbageValue());
       }
+    }
 
-      const patternIndex = Math.min(8, Math.floor((level - 1) / 2));
-      if (patternIndex <= 1) {
-        applyRandomGarbage(cappedRows, level <= 2 ? 2 : 1);
-      } else if (patternIndex === 2) {
-        applySidePillars(cappedRows);
-      } else if (patternIndex === 3) {
-        applyPyramid(Math.min(8, cappedRows + 1));
-      } else if (patternIndex === 4) {
-        applyDiagonal(Math.min(8, cappedRows + 1), level);
-      } else if (patternIndex === 5) {
-        applyCanyon(Math.min(8, cappedRows + 1));
-      } else if (patternIndex === 6) {
-        applyCheckerPressure(Math.min(8, cappedRows + 1));
-      } else {
-        applyHybridPattern(Math.min(8, cappedRows + 2), level);
+    function applyAtariScatter10() {
+      const occupied = new Set();
+      let guard = 0;
+      while (occupied.size < 10 && guard < 200) {
+        guard++;
+        const x = Math.floor(Math.random() * boardWidth);
+        const y = BOARD_HEIGHT - 1 - Math.floor(Math.random() * 5);
+        const key = x + ',' + y;
+        if (!occupied.has(key)) {
+          occupied.add(key);
+          setCellSafe(x, y, randomGarbageValue());
+        }
       }
+    }
+
+    function applyTwinTriangles() {
+      const rows = 6;
+      for (let i = 0; i < rows; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x <= i && x < boardWidth; x++) setCellSafe(x, y, randomGarbageValue());
+        for (let x = boardWidth - 1; x >= boardWidth - 1 - i && x >= 0; x--) setCellSafe(x, y, randomGarbageValue());
+      }
+    }
+
+    function applySixBlocks246() {
+      [1, 3, 5].forEach((offset, index) => {
+        const y = BOARD_HEIGHT - 1 - offset;
+        const left = Math.max(1, Math.floor(boardWidth / 2) - 3 + index);
+        setCellSafe(left, y, randomGarbageValue());
+        setCellSafe(Math.min(boardWidth - 2, left + 2), y, randomGarbageValue());
+      });
+    }
+
+    function applyAtariDiagonal4() {
+      for (let i = 0; i < 4; i++) {
+        const y = BOARD_HEIGHT - 1 - i;
+        for (let x = 0; x < boardWidth; x++) {
+          if ((x + i) % 3 === 0) setCellSafe(x, y, randomGarbageValue());
+        }
+      }
+    }
+
+    function getScoreInitial(index) {
+      const table = loadScoreTable();
+      const fallback = ['JMS', 'AAA', 'BBB'];
+      const name = (table[index] && table[index].name) || fallback[index] || 'JMS';
+      return String(name).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3) || fallback[index] || 'JMS';
+    }
+
+    function applyInitialPattern(index) {
+      const initials = getScoreInitial(index);
+      const glyphs = {
+        A:['111','101','111','101','101'], B:['110','101','110','101','110'], C:['111','100','100','100','111'],
+        D:['110','101','101','101','110'], E:['111','100','110','100','111'], F:['111','100','110','100','100'],
+        G:['111','100','101','101','111'], H:['101','101','111','101','101'], I:['111','010','010','010','111'],
+        J:['001','001','001','101','111'], K:['101','101','110','101','101'], L:['100','100','100','100','111'],
+        M:['101','111','111','101','101'], N:['101','111','111','111','101'], O:['111','101','101','101','111'],
+        P:['111','101','111','100','100'], Q:['111','101','101','111','001'], R:['111','101','111','110','101'],
+        S:['111','100','111','001','111'], T:['111','010','010','010','010'], U:['101','101','101','101','111'],
+        V:['101','101','101','101','010'], W:['101','101','111','111','101'], X:['101','101','010','101','101'],
+        Y:['101','101','010','010','010'], Z:['111','001','010','100','111'],
+        0:['111','101','101','101','111'], 1:['010','110','010','010','111'], 2:['111','001','111','100','111'],
+        3:['111','001','111','001','111'], 4:['101','101','111','001','001'], 5:['111','100','111','001','111'],
+        6:['111','100','111','101','111'], 7:['111','001','010','010','010'], 8:['111','101','111','101','111'], 9:['111','101','111','001','111'],
+      };
+      const glyphWidth = 3;
+      const gap = 1;
+      const totalWidth = initials.length * glyphWidth + (initials.length - 1) * gap;
+      const startX = Math.max(0, Math.floor((boardWidth - totalWidth) / 2));
+      const startY = BOARD_HEIGHT - 6;
+      initials.split('').forEach((ch, index) => {
+        const glyph = glyphs[ch] || glyphs.A;
+        const xBase = startX + index * (glyphWidth + gap);
+        glyph.forEach((row, y) => {
+          row.split('').forEach((bit, x) => {
+            if (bit === '1') setCellSafe(xBase + x, startY + y, randomGarbageValue());
+          });
+        });
+      });
+    }
+
+    function addGarbageRow() {
+      arena.shift();
+      const row = new Array(boardWidth).fill(0).map(() => randomGarbageValue());
+      const hole = Math.floor(Math.random() * boardWidth);
+      row[hole] = 0;
+      if (Math.random() < 0.35) {
+        const secondHole = Math.max(0, Math.min(boardWidth - 1, hole + (Math.random() < 0.5 ? -1 : 1)));
+        row[secondHole] = 0;
+      }
+      arena.push(row);
     }
 
     function applyExpertPatternRotation(rows, level, stage) {
@@ -2215,23 +2315,36 @@
         checkRoundClear();
       } else {
         player.piecesSinceLineClear += 1;
-        maybeSpawnRandomSingleBlock();
+        maybeSpawnRoundHazards();
       }
 
       updateStatus();
       return clearedLines;
     }
 
-    function maybeSpawnRandomSingleBlock() {
+    function maybeSpawnRoundHazards() {
       if (gameState !== 'playing') return;
-      if (player.level < 7) return;
-      const threshold = getLevelProfile(player.level).singleBlockThreshold;
-      if (player.piecesSinceLineClear < threshold) return;
+      const config = getAtariRoundConfig(player.level, player.round || 1);
+      const threshold = config.threshold || 0;
+      if (!threshold || player.piecesSinceLineClear < threshold) return;
 
-      if (addRandomSingleBlock()) {
+      let spawned = false;
+      if (config.type === 'single' || config.type === 'startSingle' || config.type === 'combo') {
+        spawned = addRandomSingleBlock() || spawned;
+      }
+      if (config.type === 'garbage' || config.type === 'startGarbage' || config.type === 'combo') {
+        addGarbageRow();
+        spawned = true;
+      }
+
+      if (spawned) {
         player.randomBlocks += 1;
         player.piecesSinceLineClear = 0;
       }
+    }
+
+    function maybeSpawnRandomSingleBlock() {
+      maybeSpawnRoundHazards();
     }
 
     function isNearExistingStack(x, y) {
@@ -2679,7 +2792,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v56',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ' + widthMode + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v58',
         { large: true }
       );
     }
