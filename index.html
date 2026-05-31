@@ -1069,7 +1069,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v62</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v63</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1214,7 +1214,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v62</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v63</span></div>
       </aside>
     </div>
 
@@ -1234,7 +1234,7 @@
         <button type="button" class="touch-btn" data-touch="level-up">LV +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v62</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v63</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1727,7 +1727,7 @@
       if (!config.start) return 0;
       if (config.start === 'sideWall8') return 8;
       if (config.start === 'scatter10') return 5;
-      if (config.start === 'pyramid') return 7;
+      if (config.start === 'pyramid') return 5;
       if (config.start === 'atariTwinStacks') return 5;
       if (config.start === 'twinTriangles') return 6;
       if (config.start === 'sixBlocks246') return 6;
@@ -2135,16 +2135,30 @@
     }
 
     function applyPyramid(rows) {
-      const center = (boardWidth - 1) / 2;
-      for (let i = 0; i < rows; i++) {
-        const y = BOARD_HEIGHT - 1 - i;
-        const halfWidth = Math.max(1, Math.floor((rows - i) * boardWidth / (rows * 2.2)));
-        for (let x = 0; x < boardWidth; x++) {
-          if (Math.abs(x - center) <= halfWidth && Math.random() > 0.12) {
-            arena[y][x] = randomGarbageValue();
-          }
-        }
-      }
+      // Round 6 tuning: fixed arcade-style pyramid.
+      // The arcade reference uses a compact, centered, stepped pile rather
+      // than a generated random pyramid. Coordinates below are designed on a
+      // 10-wide board and centered on wider boards, so R6/R21/R24 share the
+      // same recognizable starting silhouette.
+      const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const cells = [
+        // x, rows from bottom, color value
+        // bottom foundation
+        [0, 0, 2], [1, 0, 12], [2, 0, 13], [3, 0, 11], [4, 0, 6],
+        [5, 0, 11], [6, 0, 5], [7, 0, 1], [8, 0, 16], [9, 0, 2],
+        // second tier: uneven arcade-looking spread
+        [1, 1, 13], [2, 1, 4], [4, 1, 2], [5, 1, 11], [6, 1, 5], [8, 1, 1],
+        // third tier
+        [2, 2, 11], [3, 2, 5], [4, 2, 2], [5, 2, 13], [6, 2, 6], [7, 2, 1],
+        // fourth tier
+        [3, 3, 2], [4, 3, 11], [5, 3, 13], [6, 3, 6],
+        // top cap
+        [4, 4, 5], [5, 4, 1],
+      ];
+
+      cells.forEach(([x, fromBottom, value]) => {
+        setCellSafe(x + leftPad, BOARD_HEIGHT - 1 - fromBottom, value);
+      });
     }
 
     function applyDiagonal(rows, level) {
@@ -2847,7 +2861,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v62',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v63',
         { large: true }
       );
     }
