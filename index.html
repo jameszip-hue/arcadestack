@@ -820,8 +820,11 @@
 
     #mobile-controls {
       display: none;
-      width: min(100%, 440px);
+      width: min(calc(100vw - 16px), 420px);
+      max-width: calc(100vw - 16px);
       margin: 8px auto 0;
+      box-sizing: border-box;
+      overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
@@ -843,11 +846,13 @@
     .mobile-play-buttons,
     .mobile-setup-buttons {
       display: grid;
-      gap: 7px;
+      gap: 5px;
+      box-sizing: border-box;
+      width: 100%;
     }
 
     .mobile-play-buttons {
-      grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       grid-auto-rows: 44px;
       grid-template-areas:
         "left right rotate hard soft"
@@ -860,6 +865,13 @@
     }
 
     .touch-btn {
+      min-width: 0;
+      box-sizing: border-box;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+      padding-left: 2px;
+      padding-right: 2px;
       min-height: 44px;
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 13px;
@@ -886,7 +898,7 @@
     .touch-btn[data-touch="rotate"] {
       grid-area: rotate;
       min-height: 94px;
-      font-size: 15px;
+      font-size: 12px;
     }
     .touch-btn[data-touch="hard"] {
       grid-area: hard;
@@ -1082,6 +1094,8 @@
       #mobile-controls {
         display: block;
         flex: 0 0 auto;
+        width: min(calc(100vw - 12px), 420px);
+        max-width: calc(100vw - 12px);
         padding-bottom: 0;
       }
 
@@ -1125,14 +1139,16 @@
       .touch-btn[data-touch="rotate"],
       .touch-btn[data-touch="hard"] { min-height: 82px; }
       .touch-btn.move { font-size: 25px; }
-      .mobile-play-buttons, .mobile-setup-buttons { gap: 5px; }
+      .mobile-play-buttons, .mobile-setup-buttons { gap: 4px; }
+      .touch-btn { padding-left: 1px; padding-right: 1px; }
+      .touch-btn[data-touch="rotate"] { font-size: 10px; }
     }
   </style>
 </head>
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v90</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v91</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1273,7 +1289,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v90</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v91</span></div>
       </aside>
     </div>
 
@@ -1293,7 +1309,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v90</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v91</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1372,7 +1388,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV90';
+    const SETTINGS_KEY = 'arcadeStackSettingsV91';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -3034,7 +3050,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v90',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v91',
         { large: true }
       );
     }
