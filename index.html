@@ -1148,7 +1148,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v91</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v92</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1289,7 +1289,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v91</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v92</span></div>
       </aside>
     </div>
 
@@ -1298,9 +1298,9 @@
       <div class="mobile-play-buttons" aria-label="플레이 조작">
         <button type="button" class="touch-btn move" data-touch="left">←</button>
         <button type="button" class="touch-btn move" data-touch="right">→</button>
-        <button type="button" class="touch-btn action" data-touch="rotate">ROTATE</button>
-        <button type="button" class="touch-btn primary" data-touch="hard">HARD</button>
-        <button type="button" class="touch-btn action" data-touch="soft">SOFT</button>
+        <button type="button" class="touch-btn action" data-touch="rotate" aria-label="ROTATE">ROT</button>
+        <button type="button" class="touch-btn primary" data-touch="hard" aria-label="HARD">HD</button>
+        <button type="button" class="touch-btn action" data-touch="soft" aria-label="SOFT">SF</button>
         <button type="button" class="touch-btn pause" data-touch="pause">P</button>
       </div>
       <div class="mobile-setup-buttons" aria-label="시작 설정">
@@ -1309,7 +1309,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v91</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v92</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1388,7 +1388,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV91';
+    const SETTINGS_KEY = 'arcadeStackSettingsV92';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -3050,7 +3050,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v91',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v92',
         { large: true }
       );
     }
