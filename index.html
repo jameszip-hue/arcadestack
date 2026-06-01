@@ -847,7 +847,7 @@
     }
 
     .mobile-play-buttons {
-      grid-template-columns: 1fr 1fr 1.15fr 1.05fr 0.78fr;
+      grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
       grid-auto-rows: 44px;
       grid-template-areas:
         "left right rotate hard soft"
@@ -1132,7 +1132,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v89</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v90</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1273,7 +1273,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v89</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v90</span></div>
       </aside>
     </div>
 
@@ -1293,7 +1293,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v89</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v90</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1372,7 +1372,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV89';
+    const SETTINGS_KEY = 'arcadeStackSettingsV90';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -3034,7 +3034,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v89',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v90',
         { large: true }
       );
     }
