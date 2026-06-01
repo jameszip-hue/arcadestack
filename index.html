@@ -1130,7 +1130,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v84</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v85</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1271,7 +1271,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v84</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v85</span></div>
       </aside>
     </div>
 
@@ -1291,7 +1291,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v84</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v85</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1370,7 +1370,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV84';
+    const SETTINGS_KEY = 'arcadeStackSettingsV85';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -1390,9 +1390,13 @@
     mobileNextContext.setTransform(BLOCK_SIZE, 0, 0, BLOCK_SIZE, 0, 0);
 
     const savedSettings = loadSettings();
+    const initialMobileLayout = window.matchMedia('(max-width: 760px)').matches;
+    const platformDefaults = initialMobileLayout
+      ? { ghost: true, randomizer: 'fair' }
+      : { ghost: false, randomizer: 'classic' };
     const settings = {
-      ghost: savedSettings.ghost ?? true,
-      randomizer: savedSettings.randomizer || 'fair',
+      ghost: savedSettings.ghost ?? platformDefaults.ghost,
+      randomizer: savedSettings.randomizer || platformDefaults.randomizer,
       boardWidth: savedSettings.boardWidth || 10,
       sound: savedSettings.sound ?? true,
     };
@@ -3028,7 +3032,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v84',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v85',
         { large: true }
       );
     }
