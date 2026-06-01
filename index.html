@@ -847,12 +847,10 @@
     }
 
     .mobile-play-buttons {
-      grid-template-columns: 1fr 1fr 1.05fr 0.82fr;
-      grid-template-rows: 48px 48px;
-      grid-template-areas:
-        "left right rotate soft"
-        "left right hard pause";
-      align-items: stretch;
+      grid-template-columns: 0.9fr 0.9fr 1.28fr 0.98fr 0.72fr 0.52fr;
+      grid-template-rows: 48px;
+      grid-template-areas: "left right rotate hard soft pause";
+      align-items: center;
     }
 
     .mobile-setup-buttons {
@@ -875,8 +873,8 @@
     }
 
     .touch-btn.move {
-      min-height: 96px;
-      font-size: 28px;
+      min-height: 48px;
+      font-size: 26px;
       background: rgba(15, 23, 42, 0.96);
     }
 
@@ -890,6 +888,13 @@
     }
     .touch-btn[data-touch="hard"] { grid-area: hard; }
     .touch-btn[data-touch="pause"] { grid-area: pause; }
+    .touch-btn[data-touch="soft"],
+    .touch-btn[data-touch="pause"] {
+      min-height: 38px;
+      font-size: 11px;
+      border-radius: 11px;
+      align-self: center;
+    }
 
     .touch-btn.action {
       background: rgba(8, 47, 73, 0.80);
@@ -1095,12 +1100,17 @@
       }
 
       .mobile-play-buttons {
-        grid-template-rows: 48px 44px;
+        grid-template-rows: 46px;
       }
 
       .touch-btn.move,
-      .touch-btn[data-touch="rotate"] {
-        min-height: 48px;
+      .touch-btn[data-touch="rotate"],
+      .touch-btn[data-touch="hard"] {
+        min-height: 46px;
+      }
+      .touch-btn[data-touch="soft"],
+      .touch-btn[data-touch="pause"] {
+        min-height: 36px;
       }
     }
 
@@ -1120,9 +1130,13 @@
       .stat-label { font-size: 9px; }
       .stat-value { font-size: 15px; }
       .touch-btn { min-height: 38px; font-size: 11px; }
-      .mobile-play-buttons { grid-template-rows: 44px 40px; }
-      .touch-btn.move { min-height: 44px; font-size: 24px; }
-      .touch-btn[data-touch="rotate"] { min-height: 44px; font-size: 13px; }
+      .mobile-play-buttons {
+        grid-template-columns: 0.82fr 0.82fr 1.18fr 0.9fr 0.62fr 0.46fr;
+        grid-template-rows: 42px;
+      }
+      .touch-btn.move { min-height: 42px; font-size: 22px; }
+      .touch-btn[data-touch="rotate"], .touch-btn[data-touch="hard"] { min-height: 42px; font-size: 12px; }
+      .touch-btn[data-touch="soft"], .touch-btn[data-touch="pause"] { min-height: 34px; font-size: 10px; }
       .mobile-play-buttons, .mobile-setup-buttons { gap: 5px; }
     }
   </style>
@@ -1130,7 +1144,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v85</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v86</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1271,7 +1285,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v85</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v86</span></div>
       </aside>
     </div>
 
@@ -1291,7 +1305,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v85</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v86</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1370,7 +1384,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV85';
+    const SETTINGS_KEY = 'arcadeStackSettingsV86';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -3032,7 +3046,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v85',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v86',
         { large: true }
       );
     }
