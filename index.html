@@ -1110,7 +1110,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v70</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v71</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1251,7 +1251,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v70</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v71</span></div>
       </aside>
     </div>
 
@@ -1271,7 +1271,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v70</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v71</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1350,7 +1350,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV70';
+    const SETTINGS_KEY = 'arcadeStackSettingsV71';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -2040,9 +2040,9 @@
         [2, 3, 2],  // blue block
         [4, 4, 1],  // green upper-middle block
         [6, 3, 11], // yellow block
-        [7, 3, 13], // magenta block
+        [7, 3, 3],  // third column from the right uses L purple
         [5, 2, 6],  // cyan middle block
-        [8, 1, 3],  // right-side second block uses L purple for arcade color match
+        [8, 1, 5],  // second column from the right uses red
         [3, 1, 11], // orange/yellow lower-middle block
         [1, 0, 16], // lower-left green block
         [6, 0, 2],  // lower blue block
@@ -3004,7 +3004,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v70',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v71',
         { large: true }
       );
     }
