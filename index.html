@@ -1110,7 +1110,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v66</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v67</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1251,7 +1251,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v66</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v67</span></div>
       </aside>
     </div>
 
@@ -1271,7 +1271,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v66</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v67</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1350,7 +1350,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV66';
+    const SETTINGS_KEY = 'arcadeStackSettingsV67';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -2063,45 +2063,73 @@
     }
 
     function applyAtariTwinStacks() {
-      // Round 13 tuning: mimic the arcade screenshot more closely.
-      // The stacks are not perfect triangles; they sit against the side walls,
-      // leave the middle open, and have a slightly irregular stepped surface.
-      const leftCells = [
-        [0, 0], [1, 0],
-        [0, 1], [1, 1], [2, 1],
-        [0, 2], [1, 2],
-        [0, 3], [1, 3], [2, 3],
-        [0, 4], [1, 4],
-      ];
-      const rightCells = [
-        [boardWidth - 2, 0], [boardWidth - 1, 0],
-        [boardWidth - 3, 1], [boardWidth - 2, 1], [boardWidth - 1, 1],
-        [boardWidth - 2, 2], [boardWidth - 1, 2],
-        [boardWidth - 4, 3], [boardWidth - 3, 3], [boardWidth - 1, 3],
-        [boardWidth - 3, 4], [boardWidth - 2, 4], [boardWidth - 1, 4],
+      // Round 13 arcade tuning.
+      // Fixed asymmetric side clusters based on the arcade reference frame:
+      // both stacks hug the side walls, the middle remains open, and the
+      // color order is fixed so the start screen has the same visual identity
+      // on every run. Coordinates are based on a 10-wide board and centered on
+      // the 12-wide option.
+      const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const cells = [
+        // Left cluster: x, rows from bottom, color value
+        [0, 0, 6], [1, 0, 11],
+        [0, 1, 2], [1, 1, 12], [2, 1, 13],
+        [0, 2, 14], [1, 2, 1], [2, 2, 6], [3, 2, 6],
+        [0, 3, 4], [1, 3, 3], [2, 3, 11],
+        [0, 4, 5], [1, 4, 6],
+
+        // Right cluster
+        [8, 0, 14], [9, 0, 13],
+        [7, 1, 1], [8, 1, 11], [9, 1, 3],
+        [6, 2, 6], [7, 2, 2], [8, 2, 12], [9, 2, 13],
+        [7, 3, 1], [8, 3, 11], [9, 3, 4],
+        [8, 4, 2], [9, 4, 5],
       ];
 
-      [...leftCells, ...rightCells].forEach(([x, fromBottom]) => {
-        setCellSafe(x, BOARD_HEIGHT - 1 - fromBottom, randomGarbageValue());
+      cells.forEach(([x, fromBottom, value]) => {
+        setCellSafe(x + leftPad, BOARD_HEIGHT - 1 - fromBottom, value);
       });
     }
 
     function applySixBlocks246() {
-      [1, 3, 5].forEach((offset, index) => {
-        const y = BOARD_HEIGHT - 1 - offset;
-        const left = Math.max(1, Math.floor(boardWidth / 2) - 3 + index);
-        setCellSafe(left, y, randomGarbageValue());
-        setCellSafe(Math.min(boardWidth - 2, left + 2), y, randomGarbageValue());
+      // Round 14 arcade tuning.
+      // The arcade frame reads as six fixed single blocks, not a generated
+      // rule pattern. Keep the same low-field scattered shape every time.
+      const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const cells = [
+        // x, rows from bottom, color value
+        [3, 0, 13], [4, 0, 2],
+        [1, 2, 6], [8, 2, 5],
+        [4, 4, 11], [5, 4, 1],
+      ];
+
+      cells.forEach(([x, fromBottom, value]) => {
+        setCellSafe(x + leftPad, BOARD_HEIGHT - 1 - fromBottom, value);
       });
     }
 
     function applyAtariDiagonal4() {
-      for (let i = 0; i < 4; i++) {
-        const y = BOARD_HEIGHT - 1 - i;
-        for (let x = 0; x < boardWidth; x++) {
-          if ((x + i) % 3 === 0) setCellSafe(x, y, randomGarbageValue());
-        }
-      }
+      // Round 15 arcade tuning.
+      // Fixed grouped diagonal based on the reference: blue groups climb from
+      // lower left, green groups in the middle, yellow groups on the right,
+      // with a small red pair high on the left.
+      const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
+      const cells = [
+        // Left blue diagonal
+        [0, 0, 2], [1, 1, 2], [2, 2, 2], [3, 3, 2],
+        // Upper-left red pair
+        [0, 4, 5], [1, 4, 5],
+        // Middle support blocks
+        [4, 0, 13], [4, 1, 6], [5, 0, 11],
+        // Middle green diagonal
+        [5, 2, 1], [6, 3, 1], [7, 4, 1],
+        // Right yellow diagonal
+        [7, 0, 11], [8, 1, 11], [9, 2, 11],
+      ];
+
+      cells.forEach(([x, fromBottom, value]) => {
+        setCellSafe(x + leftPad, BOARD_HEIGHT - 1 - fromBottom, value);
+      });
     }
 
     function getScoreInitial(index) {
@@ -2937,7 +2965,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v66',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v67',
         { large: true }
       );
     }
