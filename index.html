@@ -1110,7 +1110,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v67</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v68</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1251,7 +1251,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v67</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v68</span></div>
       </aside>
     </div>
 
@@ -1271,7 +1271,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v67</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v68</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1350,7 +1350,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV67';
+    const SETTINGS_KEY = 'arcadeStackSettingsV68';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -1797,7 +1797,7 @@
       if (config.start === 'atariTwinStacks') return 5;
       if (config.start === 'twinTriangles') return 6;
       if (config.start === 'sixBlocks246') return 6;
-      if (config.start === 'diagonal4') return 4;
+      if (config.start === 'diagonal4') return 7;
       if (config.start === 'oneGarbageRow') return 1;
       if (config.start && config.start.indexOf('text') === 0) return 5;
       if (config.start && config.start.indexOf('initial') === 0) return 5;
@@ -2063,27 +2063,25 @@
     }
 
     function applyAtariTwinStacks() {
-      // Round 13 arcade tuning.
-      // Fixed asymmetric side clusters based on the arcade reference frame:
-      // both stacks hug the side walls, the middle remains open, and the
-      // color order is fixed so the start screen has the same visual identity
-      // on every run. Coordinates are based on a 10-wide board and centered on
-      // the 12-wide option.
+      // Round 13 confirmed arcade-style side stacks.
+      // 10-wide pattern, row 1 is the bottom row:
+      // row 5: X........X
+      // row 4: XX......XX
+      // row 3: XXX....XXX
+      // row 2: XX......XX
+      // row 1: X........X
       const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
       const cells = [
-        // Left cluster: x, rows from bottom, color value
-        [0, 0, 6], [1, 0, 11],
-        [0, 1, 2], [1, 1, 12], [2, 1, 13],
-        [0, 2, 14], [1, 2, 1], [2, 2, 6], [3, 2, 6],
-        [0, 3, 4], [1, 3, 3], [2, 3, 11],
-        [0, 4, 5], [1, 4, 6],
-
-        // Right cluster
-        [8, 0, 14], [9, 0, 13],
-        [7, 1, 1], [8, 1, 11], [9, 1, 3],
-        [6, 2, 6], [7, 2, 2], [8, 2, 12], [9, 2, 13],
-        [7, 3, 1], [8, 3, 11], [9, 3, 4],
-        [8, 4, 2], [9, 4, 5],
+        // row 1 bottom
+        [0, 0, 6], [9, 0, 13],
+        // row 2
+        [0, 1, 2], [1, 1, 12], [8, 1, 11], [9, 1, 3],
+        // row 3
+        [0, 2, 14], [1, 2, 1], [2, 2, 6], [7, 2, 2], [8, 2, 12], [9, 2, 13],
+        // row 4
+        [0, 3, 4], [1, 3, 3], [8, 3, 11], [9, 3, 4],
+        // row 5
+        [0, 4, 5], [9, 4, 5],
       ];
 
       cells.forEach(([x, fromBottom, value]) => {
@@ -2092,15 +2090,19 @@
     }
 
     function applySixBlocks246() {
-      // Round 14 arcade tuning.
-      // The arcade frame reads as six fixed single blocks, not a generated
-      // rule pattern. Keep the same low-field scattered shape every time.
+      // Round 14 confirmed six-block arcade layout.
+      // 10-wide pattern, row 1 is the bottom row:
+      // row 6: ....XX....
+      // row 5: ..........
+      // row 4: ..X....X..
+      // row 3: ..........
+      // row 2: ....XX....
+      // row 1: ..........
       const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
       const cells = [
-        // x, rows from bottom, color value
-        [3, 0, 13], [4, 0, 2],
-        [1, 2, 6], [8, 2, 5],
-        [4, 4, 11], [5, 4, 1],
+        [4, 5, 11], [5, 5, 1],
+        [2, 3, 6], [7, 3, 5],
+        [4, 1, 13], [5, 1, 2],
       ];
 
       cells.forEach(([x, fromBottom, value]) => {
@@ -2109,22 +2111,24 @@
     }
 
     function applyAtariDiagonal4() {
-      // Round 15 arcade tuning.
-      // Fixed grouped diagonal based on the reference: blue groups climb from
-      // lower left, green groups in the middle, yellow groups on the right,
-      // with a small red pair high on the left.
+      // Round 15 confirmed arcade diagonal layout.
+      // 10-wide pattern, row 1 is the bottom row:
+      // row 7: .X........
+      // row 6: X.......X.
+      // row 5: .......X..
+      // row 4: ...X..X...
+      // row 3: ..X......X
+      // row 2: .X......X.
+      // row 1: X......X..
       const leftPad = Math.max(0, Math.floor((boardWidth - 10) / 2));
       const cells = [
-        // Left blue diagonal
-        [0, 0, 2], [1, 1, 2], [2, 2, 2], [3, 3, 2],
-        // Upper-left red pair
-        [0, 4, 5], [1, 4, 5],
-        // Middle support blocks
-        [4, 0, 13], [4, 1, 6], [5, 0, 11],
-        // Middle green diagonal
-        [5, 2, 1], [6, 3, 1], [7, 4, 1],
-        // Right yellow diagonal
-        [7, 0, 11], [8, 1, 11], [9, 2, 11],
+        [0, 0, 2], [7, 0, 11],
+        [1, 1, 2], [8, 1, 11],
+        [2, 2, 2], [9, 2, 11],
+        [3, 3, 1], [6, 3, 1],
+        [7, 4, 11],
+        [0, 5, 5], [8, 5, 5],
+        [1, 6, 5],
       ];
 
       cells.forEach(([x, fromBottom, value]) => {
@@ -2965,7 +2969,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v67',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v68',
         { large: true }
       );
     }
