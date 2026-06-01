@@ -847,10 +847,14 @@
     }
 
     .mobile-play-buttons {
-      grid-template-columns: 0.9fr 0.9fr 1.28fr 0.98fr 0.72fr 0.52fr;
-      grid-template-rows: 48px;
-      grid-template-areas: "left right rotate hard soft pause";
-      align-items: center;
+      grid-template-columns: 0.9fr 0.9fr 1.22fr 0.94fr 0.58fr;
+      grid-template-rows: 22px 22px;
+      grid-template-areas:
+        "left right rotate hard soft"
+        "left right rotate hard pause";
+      align-items: stretch;
+      column-gap: 7px;
+      row-gap: 4px;
     }
 
     .mobile-setup-buttons {
@@ -886,14 +890,20 @@
       min-height: 48px;
       font-size: 15px;
     }
-    .touch-btn[data-touch="hard"] { grid-area: hard; }
+    .touch-btn[data-touch="hard"] {
+      grid-area: hard;
+      min-height: 48px;
+      font-size: 13px;
+    }
     .touch-btn[data-touch="pause"] { grid-area: pause; }
     .touch-btn[data-touch="soft"],
     .touch-btn[data-touch="pause"] {
-      min-height: 38px;
-      font-size: 11px;
-      border-radius: 11px;
-      align-self: center;
+      min-height: 0;
+      height: 100%;
+      font-size: 10px;
+      border-radius: 9px;
+      align-self: stretch;
+      padding: 0 5px;
     }
 
     .touch-btn.action {
@@ -1100,7 +1110,8 @@
       }
 
       .mobile-play-buttons {
-        grid-template-rows: 46px;
+        grid-template-rows: 21px 21px;
+        row-gap: 4px;
       }
 
       .touch-btn.move,
@@ -1110,7 +1121,8 @@
       }
       .touch-btn[data-touch="soft"],
       .touch-btn[data-touch="pause"] {
-        min-height: 36px;
+        min-height: 0;
+        height: 100%;
       }
     }
 
@@ -1131,12 +1143,14 @@
       .stat-value { font-size: 15px; }
       .touch-btn { min-height: 38px; font-size: 11px; }
       .mobile-play-buttons {
-        grid-template-columns: 0.82fr 0.82fr 1.18fr 0.9fr 0.62fr 0.46fr;
-        grid-template-rows: 42px;
+        grid-template-columns: 0.82fr 0.82fr 1.12fr 0.86fr 0.52fr;
+        grid-template-rows: 19px 19px;
+        column-gap: 5px;
+        row-gap: 4px;
       }
       .touch-btn.move { min-height: 42px; font-size: 22px; }
       .touch-btn[data-touch="rotate"], .touch-btn[data-touch="hard"] { min-height: 42px; font-size: 12px; }
-      .touch-btn[data-touch="soft"], .touch-btn[data-touch="pause"] { min-height: 34px; font-size: 10px; }
+      .touch-btn[data-touch="soft"], .touch-btn[data-touch="pause"] { min-height: 0; height: 100%; font-size: 9px; }
       .mobile-play-buttons, .mobile-setup-buttons { gap: 5px; }
     }
   </style>
@@ -1144,7 +1158,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v86</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v87</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1285,7 +1299,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v86</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v87</span></div>
       </aside>
     </div>
 
@@ -1295,8 +1309,8 @@
         <button type="button" class="touch-btn move" data-touch="left">←</button>
         <button type="button" class="touch-btn move" data-touch="right">→</button>
         <button type="button" class="touch-btn action" data-touch="rotate">ROTATE</button>
-        <button type="button" class="touch-btn action" data-touch="soft">SOFT</button>
         <button type="button" class="touch-btn primary" data-touch="hard">HARD</button>
+        <button type="button" class="touch-btn action" data-touch="soft">SOFT</button>
         <button type="button" class="touch-btn pause" data-touch="pause">P</button>
       </div>
       <div class="mobile-setup-buttons" aria-label="시작 설정">
@@ -1305,7 +1319,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v86</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v87</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1384,7 +1398,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV86';
+    const SETTINGS_KEY = 'arcadeStackSettingsV87';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -3046,7 +3060,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v86',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v87',
         { large: true }
       );
     }
