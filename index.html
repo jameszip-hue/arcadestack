@@ -670,6 +670,32 @@
       line-height: 1.25;
     }
 
+    #audio-status {
+      margin-top: 6px;
+      padding: 5px 7px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    #audio-status.audio-locked {
+      color: #facc15;
+      border-color: rgba(250, 204, 21, 0.35);
+    }
+
+    #audio-status.audio-ready {
+      color: #67e8f9;
+      border-color: rgba(103, 232, 249, 0.35);
+    }
+
+    #audio-status.audio-muted {
+      color: rgba(248, 250, 252, 0.52);
+    }
+
 
 
 
@@ -1162,7 +1188,7 @@
 <body>
   <main id="app">
     <h1>ARCADE STACK</h1>
-    <div id="copyright-line">© 2027 James. All rights reserved. · v96</div>
+    <div id="copyright-line">© 2027 James. All rights reserved. · v97</div>
 
     <div id="mobile-topbar">
       <section id="scoreboard" aria-label="게임 상태">
@@ -1266,7 +1292,8 @@
               <button class="option-card active" data-option="sound" data-value="on"><b>ON</b><span>효과음</span></button>
               <button class="option-card" data-option="sound" data-value="off"><b>OFF</b><span>무음</span></button>
             </div>
-            <div id="audio-hint">모바일에서는 첫 터치 후 소리가 활성화됩니다.</div>
+            <div id="audio-hint">START를 누르면 사운드가 활성화됩니다.</div>
+            <div id="audio-status" class="audio-locked">AUDIO LOCKED · TAP START</div>
           </div>
           <div class="option-group">
             <div class="option-label">BGM</div>
@@ -1310,7 +1337,7 @@
           <div class="mini-note">각 Level은 3개 Stage로 진행됩니다.</div>
         </div>
 
-        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v96</span></div>
+        <div class="brand-footer">© 2027 James.<br>All rights reserved.<span class="version-tag">v97</span></div>
       </aside>
     </div>
 
@@ -1330,7 +1357,7 @@
         <button type="button" class="touch-btn" data-touch="round-up">R +</button>
       </div>
     </section>
-    <div id="mobile-copyright">© 2027 James. All rights reserved. · v96</div>
+    <div id="mobile-copyright">© 2027 James. All rights reserved. · v97</div>
   </main>
 
   <section id="quick-cover" aria-label="Quick Cover" aria-hidden="true">
@@ -1402,6 +1429,7 @@
     const mobileControlsElement = document.getElementById('mobile-controls');
     const mobileCopyrightElement = document.getElementById('mobile-copyright');
     const mobileTopbarElement = document.getElementById('mobile-topbar');
+    const audioStatusElement = document.getElementById('audio-status');
     const touchButtons = Array.from(document.querySelectorAll('[data-touch]'));
     const quickCoverElement = document.getElementById('quick-cover');
 
@@ -1409,7 +1437,7 @@
     const BOARD_HEIGHT = 20;
     const STORAGE_KEY = 'arcadeStageTetrisHighScoreV22';
     const SCORE_TABLE_KEY = 'arcadeStackTopScoresV29';
-    const SETTINGS_KEY = 'arcadeStackSettingsV96';
+    const SETTINGS_KEY = 'arcadeStackSettingsV97';
     const STAGES_PER_LEVEL = 3;
     const MAX_START_LEVEL = 10;
     const MAX_START_ROUND = 27;
@@ -1755,11 +1783,11 @@
         pieceBag = [];
       } else if (option === 'sound') {
         settings.sound = value === 'on';
-        if (settings.sound) { unlockAudio(); playSound('select'); }
+        if (settings.sound) { unlockAudio(true); playSound('select'); }
         updateBgmState();
       } else if (option === 'bgm') {
         settings.bgm = value === 'on';
-        if (settings.bgm) unlockAudio();
+        if (settings.bgm) unlockAudio(true);
         updateBgmState();
       }
 
@@ -1923,6 +1951,7 @@
       focusRandomElement.innerText = randomLabel;
       lockOptionsDuringPlay();
       updateResponsiveSize();
+      updateAudioStatus();
       updateBgmState();
     }
 
@@ -1965,37 +1994,95 @@
       updateStatus();
     }
 
+    function updateAudioStatus() {
+      if (!audioStatusElement) return;
+      audioStatusElement.classList.remove('audio-locked', 'audio-ready', 'audio-muted');
+      if (!settings.sound) {
+        audioStatusElement.classList.add('audio-muted');
+        audioStatusElement.innerText = 'AUDIO OFF';
+        return;
+      }
+      const ready = audioContext && audioContext.state === 'running' && audioUnlocked;
+      if (ready) {
+        audioStatusElement.classList.add('audio-ready');
+        audioStatusElement.innerText = settings.bgm ? 'AUDIO READY · BGM ON' : 'AUDIO READY';
+      } else {
+        audioStatusElement.classList.add('audio-locked');
+        audioStatusElement.innerText = 'AUDIO LOCKED · TAP START';
+      }
+    }
+
     function ensureAudio() {
-      if (!settings.sound && !settings.bgm) return null;
+      if (!settings.sound && !settings.bgm) {
+        updateAudioStatus();
+        return null;
+      }
       if (!audioContext) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return null;
+        if (!AudioCtx) {
+          updateAudioStatus();
+          return null;
+        }
         audioContext = new AudioCtx();
       }
       if (audioContext.state === 'suspended') {
         const resumePromise = audioContext.resume();
-        if (resumePromise && typeof resumePromise.catch === 'function') resumePromise.catch(() => {});
+        if (resumePromise && typeof resumePromise.then === 'function') {
+          resumePromise.then(() => updateAudioStatus()).catch(() => updateAudioStatus());
+        }
       }
+      updateAudioStatus();
       return audioContext;
     }
 
-    function unlockAudio() {
-      const ctx = ensureAudio();
-      if (!ctx || audioUnlocked) return ctx;
+    function playUnlockPulse(ctx, audible = false) {
+      if (!ctx) return;
       try {
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        oscillator.frequency.setValueAtTime(32, ctx.currentTime);
+        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(audible ? 0.018 : 0.0002, now + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+        oscillator.type = audible ? 'square' : 'sine';
+        oscillator.frequency.setValueAtTime(audible ? 740 : 32, now);
         oscillator.connect(gain);
         gain.connect(ctx.destination);
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.025);
+        oscillator.start(now);
+        oscillator.stop(now + 0.07);
         audioUnlocked = true;
       } catch (error) {
         audioUnlocked = false;
       }
+      updateAudioStatus();
+    }
+
+    function unlockAudio(audible = false) {
+      const ctx = ensureAudio();
+      if (!ctx) return null;
+      const runPulse = () => {
+        if (!audioUnlocked || audible) playUnlockPulse(ctx, audible);
+        else updateAudioStatus();
+      };
+      if (ctx.state === 'suspended') {
+        const resumePromise = ctx.resume();
+        if (resumePromise && typeof resumePromise.then === 'function') {
+          resumePromise.then(runPulse).catch(() => updateAudioStatus());
+        } else {
+          runPulse();
+        }
+      } else {
+        runPulse();
+      }
       return ctx;
+    }
+
+    function activateAudioFromStart() {
+      if (!settings.sound) {
+        updateAudioStatus();
+        return;
+      }
+      unlockAudio(true);
     }
 
     function playTone(frequency, duration = 0.06, type = 'square', gainValue = 0.035, delay = 0) {
@@ -3148,7 +3235,7 @@
       const randomMode = settings.randomizer === 'fair' ? 'FAIR 7-BAG' : 'CLASSIC RANDOM';
       drawOverlay(
         'ARCADE STACK',
-        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v96',
+        'PRESS ENTER\nSTART LV ' + selectedStartLevel + ' · ROUND ' + getDisplayRoundNumber(selectedStartLevel, 1) + '\n' + ghostMode + ' · ' + randomMode + '\n© 2027 James. All rights reserved. · v97',
         { large: true }
       );
     }
@@ -3332,6 +3419,7 @@
       goalAlert = { text: '', startedAt: 0, remaining: null };
       tetrisAlert = { active: false, startedAt: 0, bonus: 0 };
       impactEffect = { startedAt: 0, y: 0, hard: false };
+      activateAudioFromStart();
       playSound('start');
       lastBonus = { emptyRows: 0, clean: 0, level: 0, total: 0 };
       updateDifficulty();
@@ -3508,7 +3596,7 @@
 
 
     function handleMobileAction(action) {
-      unlockAudio();
+      unlockAudio(action === 'start');
       if (action === 'left') playerMove(-1);
       else if (action === 'right') playerMove(1);
       else if (action === 'rotate') playerRotate(-1);
